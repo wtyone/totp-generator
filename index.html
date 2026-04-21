@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TOTP Generator</title>
+  <style>
+    :root {
+      --bg-color: #f0f2f5;
+      --card-bg: #ffffff;
+      --primary: #1e3a8a;
+      --primary-hover: #1e40af;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --bg-soft: #f8fafc;
+    }
+
+    [v-cloak] { display: none; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .totp-card {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .header h2 {
+      color: var(--primary);
+      font-size: 20px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .header p {
+      margin: 5px 0 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Section Title */
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--primary);
+      margin: 15px 0 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 14px;
+      background: var(--primary);
+      margin-right: 8px;
+      border-radius: 2px;
+    }
+
+    /* Token Display Section */
+    .token-section {
+      background-color: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 15px;
+    }
+
+    .token-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .timer-icon {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .timer-icon::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .timer-text {
+      color: var(--accent);
+    }
+
+    .timer-text.warning {
+      color: var(--warning);
+    }
+
+    .expire-text {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .token-main {
+      text-align: center;
+      position: relative;
+    }
+
+    .token-value {
+      font-family: 'Courier New', monospace;
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--primary);
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .token-value.warning {
+      color: var(--warning);
+    }
+
+    /* Progress Bar - under token value */
+    .progress-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.3s linear;
+    }
+
+    .progress-fill.warning {
+      background: var(--warning);
+    }
+
+    .token-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Adjacent Tokens */
+    .adjacent-tokens {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .adjacent-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .adjacent-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .adjacent-value {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-secondary, var(--text-muted));
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      flex: 1;
+      background: var(--bg-soft);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: #e8eef6;
+      border-color: #c7d4e8;
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn:active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Toast notification - floating at top */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      font-size: 14px;
+      color: white;
+      background: var(--success);
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      z-index: 1000;
+      animation: toastIn 0.3s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Config Section */
+    .config-section {
+      margin-top: 20px;
+      border-top: 2px solid var(--border);
+      padding-top: 15px;
+    }
+
+    .config-toggle-btn {
+      width: 100%;
+      background: var(--bg-soft);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 10px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .config-toggle-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .config-toggle-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .config-toggle-icon {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s;
+    }
+
+    .config-toggle-btn.active .config-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .config-content {
+      display: none;
+    }
+
+    .config-content.active {
+      display: block;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+      font-family: inherit;
+      color: var(--text-main);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* QR Paste Area */
+    .qr-paste-area {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fafafa;
+    }
+
+    .qr-paste-area:hover,
+    .qr-paste-area:focus,
+    .qr-paste-area.active {
+      border-color: var(--primary);
+      border-style: solid;
+      background: #fff;
+    }
+
+    .qr-paste-area:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+    }
+
+    .qr-paste-icon {
+      font-size: 16px;
+      opacity: 0.6;
+    }
+
+    .qr-paste-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .qr-paste-area.active .qr-paste-text {
+      color: var(--primary);
+    }
+
+    /* Responsive - Desktop Enhancement */
+    @media (min-width: 768px) {
+      body {
+        padding: 40px;
+        align-items: flex-start;
+      }
+
+      .totp-card {
+        max-width: 480px;
+        padding: 35px 40px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08);
+        margin-top: 40px;
+      }
+
+      .header h2 {
+        font-size: 24px;
+      }
+
+      .header p {
+        font-size: 13px;
+      }
+
+      .section-title {
+        font-size: 15px;
+        margin: 20px 0 12px;
+      }
+
+      .token-section {
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+
+      .token-value {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+
+      .progress-bar {
+        height: 4px;
+        margin-bottom: 10px;
+      }
+
+      .adjacent-value {
+        font-size: 16px;
+      }
+
+      .actions {
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .btn {
+        padding: 14px 20px;
+        font-size: 15px;
+        border-radius: 10px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(30, 58, 138, 0.15);
+      }
+
+      .btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .form-group input,
+      .form-group select {
+        padding: 12px 14px;
+        font-size: 15px;
+      }
+
+      .config-section {
+        margin-top: 25px;
+        padding-top: 20px;
+      }
+    }
+
+    /* Responsive - Mobile Optimization */
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+        min-height: 100vh;
+        align-items: flex-start;
+      }
+
+      .totp-card {
+        padding: 18px 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        margin-top: 12px;
+      }
+
+      .header {
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+      }
+
+      .header h2 {
+        font-size: 18px;
+      }
+
+      .header p {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+
+      .section-title {
+        font-size: 13px;
+        margin: 12px 0 8px;
+      }
+
+      .section-title::before {
+        width: 3px;
+        height: 12px;
+        margin-right: 6px;
+      }
+
+      .token-section {
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+      }
+
+      .token-header {
+        margin-bottom: 10px;
+      }
+
+      .timer-display {
+        gap: 6px;
+        font-size: 12px;
+      }
+
+      .timer-icon {
+        width: 14px;
+        height: 14px;
+      }
+
+      .expire-text {
+        font-size: 10px;
+      }
+
+      .token-value {
+        font-size: 26px;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+      }
+
+      .progress-bar {
+        height: 3px;
+        margin-bottom: 6px;
+      }
+
+      .token-label {
+        font-size: 10px;
+      }
+
+      .adjacent-tokens {
+        gap: 12px;
+      }
+
+      .adjacent-label {
+        font-size: 9px;
+      }
+
+      .adjacent-value {
+        font-size: 13px;
+        margin-top: 3px;
+      }
+
+      .actions {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .btn {
+        padding: 14px 16px;
+        font-size: 14px;
+        border-radius: 8px;
+        min-height: 48px;
+        touch-action: manipulation;
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .toast {
+        top: 12px;
+        padding: 10px 18px;
+        font-size: 13px;
+        border-radius: 6px;
+      }
+
+      .config-section {
+        margin-top: 16px;
+        padding-top: 12px;
+      }
+
+      .config-toggle-btn {
+        padding: 12px;
+        font-size: 12px;
+        min-height: 44px;
+        touch-action: manipulation;
+      }
+
+      .config-toggle-icon {
+        width: 12px;
+        height: 12px;
+      }
+
+      .form-group {
+        margin-bottom: 8px;
+      }
+
+      .form-group label {
+        font-size: 12px;
+        margin-bottom: 3px;
+      }
+
+      .form-group input,
+      .form-group select {
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        min-height: 44px;
+      }
+
+      .form-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .qr-paste-area {
+        padding: 14px;
+        border-radius: 6px;
+        min-height: 56px;
+        touch-action: manipulation;
+      }
+
+      .qr-paste-icon {
+        font-size: 20px;
+      }
+
+      .qr-paste-text {
+        font-size: 11px;
+        margin-top: 6px;
+      }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 360px) {
+      .totp-card {
+        padding: 14px 12px;
+      }
+
+      .token-value {
+        font-size: 22px;
+      }
+
+      .adjacent-tokens {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .adjacent-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    /* Safe area for iOS devices */
+    @supports (padding: max(0px)) {
+      body {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+      }
+    }
+  </style>
+  <script src="js/assets/jsqr-1.4.0.min.js"></script>
+</head>
+<body>
+
+<script defer src="js/assets/vue-3.4.20.global.prod.js"></script>
+  <script defer src="js/assets/otpauth-9.1.3.min.js"></script>
+  <script defer src="js/assets/clipboard-2.0.6.min.js"></script>
+  <script defer src="js/app.js?v=4.0"></script>
+
+<script>
+  // Set html lang attribute based on browser language
+  const isChinese = navigator.language.startsWith('zh') || navigator.languages.some(l => l.startsWith('zh'));
+  document.documentElement.lang = isChinese ? 'zh-CN' : 'en';
+</script>
+
+<div class="totp-card" id="app" v-cloak>
+
+  <!-- Header -->
+  <div class="header">
+    <h2>TOTP Generator</h2>
+    <p>Time-based One-time Password</p>
+  </div>
+
+  <!-- Token Section -->
+  <div class="section-title">{{ i18n.t('title') }}</div>
+
+  <section class="token-section">
+    <!-- Timer Header -->
+    <div class="token-header">
+      <div class="timer-display">
+        <div class="timer-icon"></div>
+        <span class="timer-text" :class="{'warning': updatingIn <= 10}">{{ updatingIn }}s</span>
+      </div>
+      <span class="expire-text">{{ i18n.t('expires') }} {{ formatTime(expiresAt) }}</span>
+    </div>
+
+    <!-- Main Token -->
+    <div class="token-main">
+      <div class="token-value" :class="{'warning': updatingIn <= 5}">{{ token }}</div>
+      <div class="progress-bar">
+        <div class="progress-fill" :class="{'warning': updatingIn <= 10}" :style="{width: progressPercent + '%'}"></div>
+      </div>
+      <div class="token-label">{{ i18n.t('title') }}</div>
+    </div>
+
+    <!-- Adjacent Tokens -->
+    <div class="adjacent-tokens">
+      <div class="adjacent-item">
+        <div class="adjacent-label">{{ i18n.t('previous') }}</div>
+        <div class="adjacent-value">{{ prevToken }}</div>
+      </div>
+      <div class="adjacent-item">
+        <div class="adjacent-label">{{ i18n.t('next') }}</div>
+        <div class="adjacent-value">{{ nextToken }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-primary" id="clipboard-button" data-clipboard-target=".token-value">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+      </svg>
+      {{ i18n.t('copyToken') }}
+    </button>
+    <button class="btn btn-primary" @click="copyShareLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"/>
+        <circle cx="6" cy="12" r="3"/>
+        <circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      {{ i18n.t('shareLink') }}
+    </button>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" v-if="copyMessage">{{ copyMessage }}</div>
+
+  <!-- Config Section -->
+  <section class="config-section">
+    <button class="config-toggle-btn" :class="{'active': showConfig}" @click="showConfig = !showConfig">
+      <svg class="config-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+      {{ i18n.t('configSettings') }}
+    </button>
+
+    <div class="config-content" :class="{'active': showConfig}">
+      <div class="section-title">{{ i18n.t('secretConfig') }}</div>
+
+      <div class="form-group">
+        <label>{{ i18n.t('secretKey') }}</label>
+        <input type="text" v-model="secret_key" :placeholder="i18n.t('secretPlaceholder')">
+      </div>
+
+      <div class="section-title">{{ i18n.t('algorithmParams') }}</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>{{ i18n.t('algorithm') }}</label>
+          <select v-model="algorithm">
+            <option>SHA1</option>
+            <option>SHA256</option>
+            <option>SHA512</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>{{ i18n.t('digits') }}</label>
+          <input type="number" v-model.number="digits" placeholder="6">
+        </div>
+        <div class="form-group">
+          <label>{{ i18n.t('period') }}</label>
+          <input type="number" v-model.number="period" placeholder="30">
+        </div>
+      </div>
+
+      <div class="section-title">{{ i18n.t('qrImport') }}</div>
+
+      <div class="form-group">
+        <label>{{ i18n.t('importQR') }}</label>
+        <div
+          id="paste-area"
+          tabindex="0"
+          class="qr-paste-area"
+          :class="{'active': pasteFocused}"
+          @paste="handlePaste"
+          @focus="pasteFocused=true"
+          @blur="pasteFocused=false">
+          <span class="qr-paste-icon">📷</span>
+          <span class="qr-paste-text">{{ pasteFocused ? i18n.t('pasteQR') : i18n.t('clickPaste') }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+# IDE and editor
+.vscode/
+.idea/
+
+# Claude Code / OMC
+.claude/
+.omc/
+
+# Playwright MCP test files
+.playwright-mcp/
+
+# Test screenshots
+*.png
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
