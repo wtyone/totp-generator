@@ -1,7 +1,3 @@
-function getCurrentSeconds() {
-  return Math.round(new Date().getTime() / 1000.0);
-}
-
 function stripSpaces(str) {
   return str.replace(/\s/g, '');
 }
@@ -15,12 +11,21 @@ function truncateTo(str, digits) {
 }
 
 function parseURLSearch(search) {
-  const queryParams = search.substr(1).split('&').reduce(function (q, query) {
-    const chunks = query.split('=');
-    const key = chunks[0];
-    let value = decodeURIComponent(chunks[1]);
-    value = isNaN(Number(value)) ? value : Number(value);
-    return (q[key] = value, q);
+  if (!search || search.length <= 1) return {};
+  var queryParams = search.substring(1).split('&').reduce(function (q, query) {
+    var chunks = query.split('=');
+    var key = chunks[0];
+    if (!key) return q;
+    var rawValue = chunks.length > 1 ? chunks.slice(1).join('=') : '';
+    var value;
+    try {
+      value = decodeURIComponent(rawValue);
+    } catch (e) {
+      value = rawValue;
+    }
+    value = isNaN(Number(value)) || value === '' ? value : Number(value);
+    q[key] = value;
+    return q;
   }, {});
 
   return queryParams;
@@ -46,13 +51,26 @@ const i18n = {
       algorithm: 'Algorithm',
       digits: 'Digits',
       period: 'Period (s)',
+      tokenCopied: 'Token copied!',
+      linkCopied: 'Link copied!',
+      noQRFound: 'No QR code found in image. Try a clearer screenshot.',
+      copyFailed: 'Copy failed, please copy manually.',
       qrImport: 'QR Import',
       importQR: 'Import from QR Code',
       pasteQR: 'Paste QR image...',
       clickPaste: 'Click & paste QR screenshot',
-      tokenCopied: 'Token copied!',
-      linkCopied: 'Link copied!',
-      noQRFound: 'No QR code found in image. Try a clearer screenshot.'
+      // QR Export
+      exportQR: 'QR Export',
+      issuer: 'Issuer',
+      issuerPlaceholder: 'e.g. Google, GitHub',
+      username: 'Username',
+      usernamePlaceholder: 'e.g. user@example.com',
+      generateQR: 'Generate QR Code',
+      qrGenerated: 'QR code generated!',
+      qrLabel: 'Scan with authenticator app',
+      fillAllFields: 'Please fill all fields',
+      secretWarning: 'Warning: Secret should be Base32 (A-Z, 2-7 only). Current format may not work with some authenticator apps.',
+      copyUri: 'Copy URI'
     },
     zh: {
       title: '当前令牌',
@@ -63,19 +81,32 @@ const i18n = {
       shareLink: '分享链接',
       configSettings: '配置设置',
       secretConfig: '密钥配置',
-      secretKey: '密钥 (Base-32)',
+      secretKey: '密钥（Base-32）',
       secretPlaceholder: '输入您的密钥',
       algorithmParams: '算法参数',
       algorithm: '算法',
       digits: '位数',
-      period: '周期 (秒)',
+      period: '周期（秒）',
+      copyFailed: '复制失败，请手动复制。',
       qrImport: '二维码导入',
       importQR: '导入二维码',
       pasteQR: '粘贴二维码图片...',
       clickPaste: '点击并粘贴二维码截图',
       tokenCopied: '令牌已复制！',
       linkCopied: '链接已复制！',
-      noQRFound: '图片中未找到二维码，请尝试更清晰的截图。'
+      noQRFound: '图片中未找到二维码，请尝试更清晰的截图。',
+      // QR Export
+      exportQR: '二维码导出',
+      issuer: '发行者',
+      issuerPlaceholder: '例如: Google, GitHub',
+      username: '用户名',
+      usernamePlaceholder: '例如: user@example.com',
+      generateQR: '生成二维码',
+      qrGenerated: '二维码已生成！',
+      qrLabel: '使用验证器应用扫码',
+      fillAllFields: '请填写所有字段',
+      secretWarning: '警告：密钥应为 Base32 格式（仅包含 A-Z 和 2-7）。当前格式可能在某些验证器应用中无法正常工作。',
+      copyUri: '复制 URI'
     }
   },
 
@@ -89,7 +120,7 @@ const app = Vue.createApp({
   data() {
     return {
       i18n: i18n,
-      secret_key: 'JBSWY3DPEHPK3PXP', // Default test key ("Hello!" in Base32)
+      secret_key: '',
       digits: 6,
       period: 30,
       algorithm: 'SHA1',
@@ -104,13 +135,20 @@ const app = Vue.createApp({
       copyMessage: '',
       showConfig: false,
       expiresAt: new Date(),
+      // QR Export related
+      issuer: '',
+      username: '',
+      showQRResult: false,
+      generatedQRUrl: '',
+      qrImageDataUrl: '',
+      qrSecretWarning: false
     };
   },
 
   mounted: function () {
     this.loadFromStorage();
     this.getKeyFromUrl();
-    this.getQueryParameters()
+    this.getQueryParameters();
     this.update();
 
     this.intervalHandle = setInterval(() => this.update(), 500);
@@ -123,17 +161,10 @@ const app = Vue.createApp({
 
   unmounted: function () {
     clearInterval(this.intervalHandle);
+    if (this.clipboardButton) this.clipboardButton.destroy();
   },
 
   computed: {
-    totp: function () {
-      return new OTPAuth.TOTP({
-        algorithm: this.algorithm,
-        digits: this.digits,
-        period: this.period,
-        secret: OTPAuth.Secret.fromBase32(stripSpaces(this.secret_key)),
-      });
-    },
     remainingTime: function () {
       const now = Date.now();
       const periodEnd = Math.ceil(now / (this.period * 1000)) * (this.period * 1000);
@@ -142,16 +173,6 @@ const app = Vue.createApp({
     tokenDigits: function () {
       if (!this.token) return [];
       return this.token.split('');
-    },
-    timerOffset: function () {
-      const circumference = 201;
-      const progress = this.updatingIn / this.period;
-      return circumference * (1 - progress);
-    },
-    timerRingOffset: function () {
-      const circumference = 37.7;
-      const progress = this.updatingIn / this.period;
-      return circumference * (1 - progress);
     }
   },
 
@@ -164,53 +185,61 @@ const app = Vue.createApp({
     },
 
     update: function () {
-      // 确保 period 和 digits 是数字类型
-      const periodNum = Number(this.period);
-      const digitsNum = Number(this.digits);
+      var periodNum = Number(this.period);
+      var digitsNum = Number(this.digits);
 
-      const now = Date.now();
-      const currentPeriodStart = Math.floor(now / (periodNum * 1000)) * (periodNum * 1000);
-      const elapsed = now - currentPeriodStart;
-      const remaining = periodNum * 1000 - elapsed;
+      if (!periodNum || periodNum <= 0) periodNum = 30;
+      if (!digitsNum || digitsNum <= 0) digitsNum = 6;
+
+      var now = Date.now();
+      var currentPeriodStart = Math.floor(now / (periodNum * 1000)) * (periodNum * 1000);
+      var elapsed = now - currentPeriodStart;
+      var remaining = periodNum * 1000 - elapsed;
 
       this.updatingIn = Math.ceil(remaining / 1000);
       this.progressPercent = (remaining / (periodNum * 1000)) * 100;
 
-      // Set expiresAt timestamp
-      this.expiresAt = new Date(Math.ceil(now / (periodNum * 1000)) * (periodNum * 1000));
+      this.expiresAt = new Date(currentPeriodStart + periodNum * 1000);
 
-      // Calculate counter for TOTP
-      const counter = Math.floor(now / 1000 / periodNum);
+      var counter = Math.floor(now / 1000 / periodNum);
 
-      // 使用 HOTP 静态方法生成令牌，避免实例状态问题
-      const secretObj = OTPAuth.Secret.fromBase32(stripSpaces(this.secret_key));
+      var secretStr = stripSpaces(this.secret_key);
+      if (!secretStr || !this.isValidBase32(secretStr)) {
+        this.token = '------';
+        this.prevToken = '------';
+        this.nextToken = '------';
+        return;
+      }
 
-      // 正确用法：generate({ counter: number }) 传入对象参数
-      const newToken = truncateTo(OTPAuth.HOTP.generate({
+      try {
+        var secretObj = OTPAuth.Secret.fromBase32(secretStr);
+      } catch (e) {
+        this.token = '------';
+        this.prevToken = '------';
+        this.nextToken = '------';
+        return;
+      }
+
+      this.token = truncateTo(OTPAuth.HOTP.generate({
         algorithm: this.algorithm,
         digits: digitsNum,
         counter: counter,
         secret: secretObj
       }), digitsNum);
 
-      const newPrevToken = truncateTo(OTPAuth.HOTP.generate({
+      this.prevToken = truncateTo(OTPAuth.HOTP.generate({
         algorithm: this.algorithm,
         digits: digitsNum,
         counter: counter - 1,
         secret: secretObj
       }), digitsNum);
 
-      const newNextToken = truncateTo(OTPAuth.HOTP.generate({
+      this.nextToken = truncateTo(OTPAuth.HOTP.generate({
         algorithm: this.algorithm,
         digits: digitsNum,
         counter: counter + 1,
         secret: secretObj
       }), digitsNum);
-
-      // Force Vue to detect changes by reassigning
-      this.token = newToken;
-      this.prevToken = newPrevToken;
-      this.nextToken = newNextToken;
     },
 
     generateShareLink: function () {
@@ -226,8 +255,12 @@ const app = Vue.createApp({
 
     copyShareLink: function () {
       this.generateShareLink();
-      navigator.clipboard.writeText(this.shareLink);
-      this.showMessage(i18n.t('linkCopied'));
+      var self = this;
+      navigator.clipboard.writeText(this.shareLink).then(function () {
+        self.showMessage(i18n.t('linkCopied'));
+      }).catch(function () {
+        self.showMessage(i18n.t('copyFailed'));
+      });
     },
 
     showMessage: function (msg) {
@@ -341,10 +374,21 @@ const app = Vue.createApp({
     },
 
     scanQRFromImage: function (file) {
-      const reader = new FileReader();
+      if (file.size > 2 * 1024 * 1024) {
+        alert(i18n.t('noQRFound'));
+        return;
+      }
+
+      var reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
+          var maxSize = 2000;
+          if (img.width > maxSize || img.height > maxSize) {
+            alert(i18n.t('noQRFound'));
+            return;
+          }
+
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
@@ -385,11 +429,73 @@ const app = Vue.createApp({
         period: this.period,
         algorithm: this.algorithm
       }));
+    },
+
+    // QR Export Methods
+    isValidBase32: function (str) {
+      const cleaned = str.replace(/\s/g, '').toUpperCase();
+      if (cleaned.length === 0) return true;
+      const base32Regex = /^[A-Z2-7]+$/;
+      return base32Regex.test(cleaned);
+    },
+
+    validateQRSecret: function () {
+      this.qrSecretWarning = this.secret_key && !this.isValidBase32(this.secret_key);
+    },
+
+    generateQRCode: function () {
+      const issuer = this.issuer.trim();
+      const username = this.username.trim();
+      const secret = this.secret_key.trim();
+
+      if (!issuer || !username || !secret) {
+        this.showMessage(i18n.t('fillAllFields'));
+        return;
+      }
+
+      // Build TOTP URI - only add non-default parameters for better compatibility
+      const issuerEncoded = encodeURIComponent(issuer);
+      const usernameEncoded = encodeURIComponent(username);
+      let uri = `otpauth://totp/${issuerEncoded}:${usernameEncoded}?secret=${secret}&issuer=${issuerEncoded}`;
+
+      // Only add algorithm if not default (SHA1)
+      if (this.algorithm !== 'SHA1') {
+        uri += `&algorithm=${this.algorithm}`;
+      }
+      // Only add digits if not default (6)
+      if (this.digits !== 6) {
+        uri += `&digits=${this.digits}`;
+      }
+      // Only add period if not default (30)
+      if (this.period !== 30) {
+        uri += `&period=${this.period}`;
+      }
+
+      this.generatedQRUrl = uri;
+
+      // Generate QR code using qrcode-generator library
+      const qr = qrcode(0, 'M');
+      qr.addData(this.generatedQRUrl);
+      qr.make();
+
+      // Create data URL
+      this.qrImageDataUrl = qr.createDataURL(6, 8);
+      this.showQRResult = true;
+      this.showMessage(i18n.t('qrGenerated'));
+    },
+
+    copyQRUri: function () {
+      var self = this;
+      navigator.clipboard.writeText(this.generatedQRUrl).then(function () {
+        self.showMessage(i18n.t('linkCopied'));
+      }).catch(function () {
+        self.showMessage(i18n.t('copyFailed'));
+      });
     }
   },
 
   watch: {
-    secret_key: function () { this.saveToStorage(); },
+    secret_key: function () { this.saveToStorage(); this.validateQRSecret(); },
     digits: function () { this.saveToStorage(); },
     period: function () { this.saveToStorage(); },
     algorithm: function () { this.saveToStorage(); }

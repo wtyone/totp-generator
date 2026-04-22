@@ -36,14 +36,14 @@ index.html?key=JBSWY3DPEHPK3PXP&digits=6&period=30&algorithm=SHA1
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `key` | Base-32 secret key | `JBSWY3DPEHPK3PXP` |
+| `key` | Base-32 secret key | *(empty)* |
 | `digits` | Token digits | `6` |
 | `period` | Refresh period (seconds) | `30` |
 | `algorithm` | Algorithm (SHA1/SHA256/SHA512) | `SHA1` |
 
 #### Share Link
 
-Click "Share Link" to generate a sharable URL:
+Click "Share Link" to generate a shareable URL:
 
 ```
 index.html#eyJrIjoiSlJTV1kzRFBFSFAzUFhQIiwiZCI6NiwicCI6MzAsImEiOiJTSEExIn0=
@@ -81,6 +81,7 @@ otpauth://totp/Issuer:Account?secret=KEY&algorithm=SHA1&digits=6&period=30
 - [OTPAuth](https://github.com/hectorm/otpauth) - TOTP/HOTP implementation
 - [Clipboard.js](https://clipboardjs.com/) - Copy functionality
 - [jsQR](https://github.com/cozmo/jsQR) - QR code parsing
+- [qrcode-generator](https://github.com/niclas/node-qrcode) - QR code generation
 
 #### Security
 
@@ -104,7 +105,7 @@ python -m http.server 8080
 <a name="chinese"></a>
 ## 中文
 
-一个纯前端的时间基础一次性密码(TOTP)生成器，支持二维码导入和参数分享。
+一个纯前端的基于时间的一次性密码（TOTP）生成器，支持二维码导入和参数分享。
 
 ### 功能特性
 
@@ -133,10 +134,10 @@ index.html?key=JBSWY3DPEHPK3PXP&digits=6&period=30&algorithm=SHA1
 
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
-| `key` | Base-32 密钥 | `JBSWY3DPEHPK3PXP` |
+| `key` | Base-32 密钥 | *(空)* |
 | `digits` | 令牌位数 | `6` |
-| `period` | 刷新周期(秒) | `30` |
-| `algorithm` | 算法 (SHA1/SHA256/SHA512) | `SHA1` |
+| `period` | 刷新周期（秒） | `30` |
+| `algorithm` | 算法（SHA1/SHA256/SHA512） | `SHA1` |
 
 #### 分享链接
 
@@ -146,7 +147,7 @@ index.html?key=JBSWY3DPEHPK3PXP&digits=6&period=30&algorithm=SHA1
 index.html#eyJrIjoiSlJTV1kzRFBFSFAzUFhQIiwiZCI6NiwicCI6MzAsImEiOiJTSEExIn0=
 ```
 
-Hash 部分是 Base64 编码的 JSON，包含字段：`k`(密钥)、`d`(位数)、`p`(周期)、`a`(算法)。
+Hash 部分是 Base64 编码的 JSON，包含字段：`k`（密钥）、`d`（位数）、`p`（周期）、`a`（算法）。
 
 #### 二维码导入
 
@@ -168,7 +169,7 @@ otpauth://totp/Issuer:Account?secret=KEY&algorithm=SHA1&digits=6&period=30
 | Secret Key | String | Base-32 编码密钥 | 任意 Base-32 字符串 |
 | Algorithm | String | HMAC 算法 | SHA1, SHA256, SHA512 |
 | Digits | Number | 令牌位数 | 通常为 6 或 8 |
-| Period | Number | 刷新周期(秒) | 通常为 30 |
+| Period | Number | 刷新周期（秒） | 通常为 30 |
 
 ### 技术说明
 
@@ -212,7 +213,8 @@ totp-generator/
 │       ├── vue-3.4.20.global.prod.js
 │       ├── otpauth-9.1.3.min.js
 │       ├── clipboard-2.0.6.min.js
-│       └── jsqr-1.4.0.min.js
+│       ├── jsqr-1.4.0.min.js
+│       └── qrcode.min.js
 ```
 
 ## License
