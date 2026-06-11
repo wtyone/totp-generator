@@ -4,994 +4,808 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TOTP Generator</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self';">
   <style>
     :root {
-      --bg-color: #f0f2f5;
-      --card-bg: #ffffff;
-      --primary: #1e3a8a;
-      --primary-hover: #1e40af;
-      --accent: #3b82f6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --border: #e5e7eb;
-      --bg-soft: #f8fafc;
+      --bg: #eef3f8;
+      --panel: #ffffff;
+      --panel-soft: #f7fafc;
+      --text: #172033;
+      --muted: #657386;
+      --line: #dce5ef;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-soft: #dbeafe;
+      --success: #0f9f6e;
+      --warning: #c47d05;
+      --danger: #d14343;
+      --shadow: 0 24px 60px rgba(27, 39, 57, 0.14);
     }
 
     [v-cloak] { display: none; }
 
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .totp-card {
-      background: var(--card-bg);
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    /* Header */
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid var(--border);
-    }
-
-    .header h2 {
-      color: var(--primary);
-      font-size: 20px;
-      font-weight: bold;
       margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 32rem),
+        linear-gradient(135deg, #f8fbff 0%, var(--bg) 100%);
     }
 
-    .header p {
-      margin: 5px 0 0;
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    button,
+    input,
+    select {
+      font: inherit;
     }
 
-    /* Section Title */
-    .section-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: var(--primary);
-      margin: 15px 0 10px;
+    .app-shell {
+      width: min(1120px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 42px 0;
+      display: grid;
+      align-items: center;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .hero-panel,
+    .settings-panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(220, 229, 239, 0.9);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-panel {
+      padding: 30px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-panel::after {
+      content: "";
+      position: absolute;
+      inset: auto -70px -90px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(37, 99, 235, 0.08);
+      pointer-events: none;
+    }
+
+    .brand-row,
+    .token-header,
+    .actions,
+    .form-row,
+    .section-heading,
+    .compact-meta {
       display: flex;
       align-items: center;
     }
 
-    .section-title::before {
-      content: "";
-      display: inline-block;
-      width: 4px;
-      height: 14px;
-      background: var(--primary);
-      margin-right: 8px;
-      border-radius: 2px;
+    .brand-row {
+      gap: 12px;
+      margin-bottom: 28px;
     }
 
-    /* Token Display Section */
-    .token-section {
-      background-color: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 18px;
-      margin-bottom: 15px;
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #14b8a6);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    .brand-mark svg,
+    .button-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .token-card {
+      position: relative;
+      z-index: 1;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff, var(--panel-soft));
     }
 
     .token-header {
-      display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
+      gap: 14px;
+      margin-bottom: 18px;
     }
 
-    .timer-display {
-      display: flex;
+    .status-pill {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding: 8px 11px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+      border-radius: 999px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    .timer-icon {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--accent);
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      position: relative;
+      background: currentColor;
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
     }
 
-    .timer-icon::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 4px;
-      height: 4px;
-      background: var(--accent);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .timer-text {
-      color: var(--accent);
-    }
-
-    .timer-text.warning {
-      color: var(--warning);
-    }
-
-    .expire-text {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .token-main {
-      text-align: center;
-      position: relative;
+    .expires {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
     }
 
     .token-value {
-      font-family: 'Courier New', monospace;
-      font-size: 32px;
-      font-weight: bold;
-      color: var(--primary);
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
+      margin: 0;
+      color: var(--primary-dark);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: clamp(42px, 8vw, 64px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-align: center;
+      word-break: break-all;
     }
 
-    .token-value.warning {
+    .token-value.warning,
+    .status-pill.warning {
       color: var(--warning);
     }
 
-    /* Progress Bar - under token value */
-    .progress-bar {
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
+    .progress-track {
+      height: 9px;
+      margin: 22px 0 16px;
       overflow: hidden;
-      margin-bottom: 8px;
+      border-radius: 999px;
+      background: #e5edf6;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: width 0.3s linear;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #14b8a6, var(--primary));
+      transition: width 0.35s linear;
     }
 
     .progress-fill.warning {
-      background: var(--warning);
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
     }
 
-    .token-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Adjacent Tokens */
-    .adjacent-tokens {
-      display: flex;
-      justify-content: space-between;
+    .adjacent-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
     .adjacent-item {
-      text-align: center;
-      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
     }
 
-    .adjacent-label {
-      font-size: 10px;
-      color: var(--text-muted);
+    .label {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
       text-transform: uppercase;
     }
 
     .adjacent-value {
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      color: var(--text-secondary, var(--text-muted));
-      letter-spacing: 0.05em;
-      margin-top: 4px;
+      color: #334155;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
     }
 
-    /* Actions */
     .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
+      gap: 12px;
+      margin-top: 18px;
     }
 
     .btn {
-      flex: 1;
-      background: var(--bg-soft);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-      display: flex;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 15px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
+      color: var(--text);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 750;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     }
 
-    .btn-primary {
-      background: #e8eef6;
-      border-color: #c7d4e8;
+    .actions .btn {
+      flex: 1;
     }
 
     .btn:hover {
-      border-color: var(--primary);
-      color: var(--primary);
+      transform: translateY(-1px);
+      border-color: rgba(37, 99, 235, 0.45);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12);
     }
 
     .btn:active {
-      background: var(--primary);
-      color: white;
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      color: #fff;
       border-color: var(--primary);
+      background: var(--primary);
     }
 
-    .btn svg {
-      width: 16px;
-      height: 16px;
+    .btn-primary:hover {
+      background: var(--primary-dark);
     }
 
-    /* Toast notification - floating at top */
-    .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 12px 24px;
-      font-size: 14px;
-      color: white;
-      background: var(--success);
-      border-radius: 8px;
-      font-weight: bold;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-      z-index: 1000;
-      animation: toastIn 0.3s ease-out;
-    }
-
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    /* Config Section */
-    .config-section {
-      margin-top: 20px;
-      border-top: 2px solid var(--border);
-      padding-top: 15px;
-    }
-
-    .config-toggle-btn {
-      width: 100%;
-      background: var(--bg-soft);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      padding: 10px;
+    .security-note {
+      margin: 20px 0 0;
+      padding: 14px 16px;
+      border: 1px solid rgba(15, 159, 110, 0.2);
+      border-radius: 14px;
+      color: #17664e;
+      background: rgba(15, 159, 110, 0.08);
       font-size: 13px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
+      line-height: 1.6;
+    }
+
+    .settings-panel {
+      padding: 24px;
+    }
+
+    .settings-header {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-      margin-bottom: 10px;
+      justify-content: space-between;
+      align-items: start;
+      gap: 18px;
+      margin-bottom: 18px;
     }
 
-    .config-toggle-btn:hover {
-      border-color: var(--primary);
-      color: var(--primary);
+    .settings-header h2 {
+      margin: 0;
+      font-size: 21px;
     }
 
-    .config-toggle-btn.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-
-    .config-toggle-icon {
-      width: 14px;
-      height: 14px;
-      transition: transform 0.2s;
-    }
-
-    .config-toggle-btn.active .config-toggle-icon {
-      transform: rotate(180deg);
-    }
-
-    .config-content {
-      display: none;
-    }
-
-    .config-content.active {
-      display: block;
-      animation: slideUp 0.3s ease-out;
-    }
-
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 10px;
-    }
-
-    .form-group label {
-      display: block;
+    .settings-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
       font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text-main);
+      line-height: 1.5;
     }
 
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 10px;
+    .section-heading {
+      justify-content: space-between;
+      gap: 10px;
+      margin: 22px 0 12px;
+      color: #243044;
       font-size: 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fafafa;
-      font-family: inherit;
-      color: var(--text-main);
-      transition: border-color 0.2s, background 0.2s;
+      font-weight: 800;
     }
 
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary);
+    .section-heading::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #314156;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
       background: #fff;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input:focus,
+    select:focus,
+    .qr-paste-area:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     }
 
     .form-row {
-      display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .form-row .form-group {
       flex: 1;
     }
 
-    /* QR Paste Area */
+    .compact-meta {
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .qr-paste-area {
-      padding: 12px;
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      text-align: center;
+      border: 1px dashed #b7c5d7;
+      border-radius: 14px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
       cursor: pointer;
-      transition: all 0.2s;
-      background: #fafafa;
+      background: #fbfdff;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
 
     .qr-paste-area:hover,
-    .qr-paste-area:focus,
     .qr-paste-area.active {
-      border-color: var(--primary);
       border-style: solid;
+      border-color: var(--primary);
       background: #fff;
     }
 
-    .qr-paste-area:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+    .qr-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
     }
 
-    .qr-paste-icon {
-      font-size: 16px;
-      opacity: 0.6;
+    .qr-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .qr-paste-title {
+      margin: 0 0 3px;
+      font-weight: 800;
     }
 
     .qr-paste-text {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
     }
 
-    .qr-paste-area.active .qr-paste-text {
-      color: var(--primary);
-    }
-
-    /* QR Export Styles */
-    .warning-text {
-      font-size: 12px;
-      color: var(--warning);
-      margin-top: 4px;
-    }
-
-    .qr-generate-btn {
-      width: 100%;
+    .qr-import-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
       margin-top: 12px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .camera-panel {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #0f172a;
+      color: #fff;
+    }
+
+    .camera-preview {
+      width: 100%;
+      max-height: 320px;
+      display: block;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #020617;
+    }
+
+    .camera-footer {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
     }
 
-    .qr-generate-btn:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(30, 58, 138, 0.2);
+    .camera-footer .btn {
+      min-height: 36px;
+      padding: 8px 12px;
+      border-color: rgba(255, 255, 255, 0.28);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
     }
 
-    .qr-generate-btn svg {
-      width: 18px;
-      height: 18px;
+    .warning-text {
+      margin-top: 7px;
+      color: var(--warning);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .qr-result-section {
-      margin-top: 15px;
-      animation: slideUp 0.3s ease-out;
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel-soft);
     }
 
     .totp-uri-box {
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
+      max-height: 92px;
+      overflow: auto;
+      margin-bottom: 14px;
+      padding: 11px;
+      border-radius: 10px;
+      color: #334155;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
       word-break: break-all;
-      font-size: 13px;
-      color: var(--text-main);
-      font-family: 'Courier New', monospace;
     }
 
     .qr-container {
-      text-align: center;
-      padding: 20px;
-      background: var(--bg-soft);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      gap: 10px;
       margin-bottom: 12px;
     }
 
     .qr-container img {
-      max-width: 200px;
+      width: min(220px, 100%);
       height: auto;
-      border-radius: 8px;
+      border: 10px solid #fff;
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(23, 32, 51, 0.12);
     }
 
     .qr-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
     }
 
-    .copy-uri-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      background: #e8eef6;
-      border-color: #c7d4e8;
-      color: var(--text-main);
-      padding: 10px 16px;
+    .toast {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      z-index: 10;
+      transform: translateX(-50%);
+      max-width: min(92vw, 460px);
+      padding: 12px 18px;
+      border-radius: 999px;
+      color: #fff;
+      background: #162033;
+      box-shadow: 0 16px 36px rgba(23, 32, 51, 0.22);
+      font-weight: 750;
+      animation: toast-in 0.18s ease-out;
     }
 
-    .copy-uri-btn svg {
-      width: 16px;
-      height: 16px;
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, -8px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
     }
 
-    /* Responsive - Desktop Enhancement */
-    @media (min-width: 768px) {
-      body {
-        padding: 40px;
-        align-items: flex-start;
+    @media (max-width: 860px) {
+      .app-shell {
+        width: min(100% - 24px, 640px);
+        padding: 18px 0;
+        align-items: start;
       }
 
-      .totp-card {
-        max-width: 480px;
-        padding: 35px 40px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.08);
-        margin-top: 40px;
+      .workspace {
+        grid-template-columns: 1fr;
       }
 
-      .header h2 {
-        font-size: 24px;
-      }
-
-      .header p {
-        font-size: 13px;
-      }
-
-      .section-title {
-        font-size: 15px;
-        margin: 20px 0 12px;
-      }
-
-      .token-section {
-        padding: 22px;
-        margin-bottom: 18px;
-      }
-
-      .token-value {
-        font-size: 40px;
-        margin-bottom: 12px;
-      }
-
-      .progress-bar {
-        height: 4px;
-        margin-bottom: 10px;
-      }
-
-      .adjacent-value {
-        font-size: 16px;
-      }
-
-      .actions {
-        gap: 15px;
-        margin-top: 20px;
-      }
-
-      .btn {
-        padding: 14px 20px;
-        font-size: 15px;
-        border-radius: 10px;
-      }
-
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(30, 58, 138, 0.15);
-      }
-
-      .btn svg {
-        width: 18px;
-        height: 18px;
-      }
-
-      .form-group input,
-      .form-group select {
-        padding: 12px 14px;
-        font-size: 15px;
-      }
-
-      .config-section {
-        margin-top: 25px;
-        padding-top: 20px;
+      .hero-panel,
+      .settings-panel {
+        border-radius: 18px;
       }
     }
 
-    /* Responsive - Mobile Optimization */
-    @media (max-width: 480px) {
-      body {
-        padding: 12px;
-        min-height: 100vh;
-        align-items: flex-start;
+    @media (max-width: 520px) {
+      .hero-panel,
+      .settings-panel {
+        padding: 18px;
       }
 
-      .totp-card {
-        padding: 18px 16px;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        margin-top: 12px;
+      .token-card {
+        padding: 16px;
       }
 
-      .header {
-        margin-bottom: 14px;
-        padding-bottom: 12px;
-      }
-
-      .header h2 {
-        font-size: 18px;
-      }
-
-      .header p {
-        font-size: 11px;
-        letter-spacing: 0.5px;
-      }
-
-      .section-title {
-        font-size: 13px;
-        margin: 12px 0 8px;
-      }
-
-      .section-title::before {
-        width: 3px;
-        height: 12px;
-        margin-right: 6px;
-      }
-
-      .token-section {
-        padding: 14px;
-        margin-bottom: 12px;
-        border-radius: 8px;
-      }
-
-      .token-header {
-        margin-bottom: 10px;
-      }
-
-      .timer-display {
-        gap: 6px;
-        font-size: 12px;
-      }
-
-      .timer-icon {
-        width: 14px;
-        height: 14px;
-      }
-
-      .expire-text {
-        font-size: 10px;
-      }
-
-      .token-value {
-        font-size: 26px;
-        letter-spacing: 0.08em;
-        margin-bottom: 6px;
-      }
-
-      .progress-bar {
-        height: 3px;
-        margin-bottom: 6px;
-      }
-
-      .token-label {
-        font-size: 10px;
-      }
-
-      .adjacent-tokens {
-        gap: 12px;
-      }
-
-      .adjacent-label {
-        font-size: 9px;
-      }
-
-      .adjacent-value {
-        font-size: 13px;
-        margin-top: 3px;
-      }
-
-      .actions {
+      .token-header,
+      .settings-header,
+      .actions,
+      .form-row,
+      .camera-footer {
         flex-direction: column;
-        gap: 8px;
-        margin-top: 12px;
+        align-items: stretch;
       }
 
-      .btn {
-        padding: 14px 16px;
-        font-size: 14px;
-        border-radius: 8px;
-        min-height: 48px;
-        touch-action: manipulation;
+      .expires {
+        white-space: normal;
       }
 
-      .btn:active {
-        transform: scale(0.98);
+      .adjacent-grid {
+        grid-template-columns: 1fr;
       }
 
-      .btn svg {
-        width: 16px;
-        height: 16px;
-      }
-
-      .toast {
-        top: 12px;
-        padding: 10px 18px;
-        font-size: 13px;
-        border-radius: 6px;
-      }
-
-      .config-section {
-        margin-top: 16px;
-        padding-top: 12px;
-      }
-
-      .config-toggle-btn {
-        padding: 12px;
-        font-size: 12px;
-        min-height: 44px;
-        touch-action: manipulation;
-      }
-
-      .config-toggle-icon {
-        width: 12px;
-        height: 12px;
-      }
-
-      .form-group {
-        margin-bottom: 8px;
-      }
-
-      .form-group label {
-        font-size: 12px;
-        margin-bottom: 3px;
-      }
-
-      .form-group input,
-      .form-group select {
-        padding: 10px 12px;
-        font-size: 14px;
-        border-radius: 6px;
-        min-height: 44px;
-      }
-
-      .form-row {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .qr-paste-area {
-        padding: 14px;
-        border-radius: 6px;
-        min-height: 56px;
-        touch-action: manipulation;
-      }
-
-      .qr-paste-icon {
-        font-size: 20px;
-      }
-
-      .qr-paste-text {
-        font-size: 11px;
-        margin-top: 6px;
-      }
-    }
-
-    /* Extra small screens */
-    @media (max-width: 360px) {
-      .totp-card {
-        padding: 14px 12px;
-      }
-
-      .token-value {
-        font-size: 22px;
-      }
-
-      .adjacent-tokens {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .adjacent-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-    }
-
-    /* Safe area for iOS devices */
-    @supports (padding: max(0px)) {
-      body {
-        padding-left: max(12px, env(safe-area-inset-left));
-        padding-right: max(12px, env(safe-area-inset-right));
-      }
-
-      @media (max-width: 480px) {
-        body {
-          padding-bottom: max(12px, env(safe-area-inset-bottom));
-        }
+      .qr-import-actions {
+        grid-template-columns: 1fr;
       }
     }
   </style>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self';">
   <script src="js/assets/jsqr-1.4.0.min.js"></script>
   <script src="js/assets/qrcode.min.js"></script>
 </head>
 <body>
-
 <script>
-  // Set html lang attribute based on browser language
-  const isChinese = navigator.language.startsWith('zh') || navigator.languages.some(l => l.startsWith('zh'));
+  const isChinese = navigator.language.startsWith('zh') || navigator.languages.some(function (l) { return l.startsWith('zh'); });
   document.documentElement.lang = isChinese ? 'zh-CN' : 'en';
 </script>
 
 <script defer src="js/assets/vue-3.4.20.global.prod.js"></script>
 <script defer src="js/assets/otpauth-9.1.3.min.js"></script>
 <script defer src="js/assets/clipboard-2.0.6.min.js"></script>
-<script defer src="js/app.js?v=4.0"></script>
+<script defer src="js/app.js?v=5.0"></script>
 
-<div class="totp-card" id="app" v-cloak>
-
-  <!-- Header -->
-  <div class="header">
-    <h2>TOTP Generator</h2>
-    <p>Time-based One-time Password</p>
-  </div>
-
-  <!-- Token Section -->
-  <div class="section-title">{{ i18n.t('title') }}</div>
-
-  <section class="token-section">
-    <!-- Timer Header -->
-    <div class="token-header">
-      <div class="timer-display">
-        <div class="timer-icon"></div>
-        <span class="timer-text" :class="{'warning': updatingIn <= 10}">{{ updatingIn }}s</span>
+<main class="app-shell" id="app" v-cloak>
+  <div class="workspace">
+    <section class="hero-panel" aria-labelledby="page-title">
+      <div class="brand-row">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z"/>
+            <path d="M9 12l2 2 4-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="page-title">TOTP Generator</h1>
+          <p class="subtitle">{{ i18n.t('subtitle') }}</p>
+        </div>
       </div>
-      <span class="expire-text">{{ i18n.t('expires') }} {{ formatTime(expiresAt) }}</span>
-    </div>
 
-    <!-- Main Token -->
-    <div class="token-main">
-      <div class="token-value" :class="{'warning': updatingIn <= 5}">{{ token }}</div>
-      <div class="progress-bar">
-        <div class="progress-fill" :class="{'warning': updatingIn <= 10}" :style="{width: progressPercent + '%'}"></div>
+      <div class="token-card">
+        <div class="token-header">
+          <div class="status-pill" :class="{'warning': updatingIn <= 10}">
+            <span class="pulse-dot"></span>
+            <span>{{ updatingIn }}s</span>
+          </div>
+          <div class="expires">{{ i18n.t('expires') }} {{ formatTime(expiresAt) }}</div>
+        </div>
+
+        <p class="token-value" :class="{'warning': updatingIn <= 5}">{{ token }}</p>
+
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" :class="{'warning': updatingIn <= 10}" :style="{width: progressPercent + '%'}"></div>
+        </div>
+
+        <div class="adjacent-grid">
+          <div class="adjacent-item">
+            <div class="label">{{ i18n.t('previous') }}</div>
+            <div class="adjacent-value">{{ prevToken }}</div>
+          </div>
+          <div class="adjacent-item">
+            <div class="label">{{ i18n.t('next') }}</div>
+            <div class="adjacent-value">{{ nextToken }}</div>
+          </div>
+        </div>
       </div>
-      <div class="token-label">{{ i18n.t('title') }}</div>
-    </div>
 
-    <!-- Adjacent Tokens -->
-    <div class="adjacent-tokens">
-      <div class="adjacent-item">
-        <div class="adjacent-label">{{ i18n.t('previous') }}</div>
-        <div class="adjacent-value">{{ prevToken }}</div>
+      <div class="actions">
+        <button class="btn btn-primary" id="clipboard-button" type="button" data-clipboard-target=".token-value">
+          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+          </svg>
+          {{ i18n.t('copyToken') }}
+        </button>
+        <button class="btn" type="button" @click="copyShareLink">
+          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          {{ i18n.t('shareLink') }}
+        </button>
       </div>
-      <div class="adjacent-item">
-        <div class="adjacent-label">{{ i18n.t('next') }}</div>
-        <div class="adjacent-value">{{ nextToken }}</div>
+
+      <p class="security-note">{{ i18n.t('securityNote') }}</p>
+    </section>
+
+    <section class="settings-panel" aria-labelledby="settings-title">
+      <div class="settings-header">
+        <div>
+          <h2 id="settings-title">{{ i18n.t('configSettings') }}</h2>
+          <p>{{ i18n.t('configIntro') }}</p>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Actions -->
-  <div class="actions">
-    <button class="btn btn-primary" id="clipboard-button" data-clipboard-target=".token-value">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="9" y="9" width="13" height="13" rx="2"/>
-        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-      </svg>
-      {{ i18n.t('copyToken') }}
-    </button>
-    <button class="btn btn-primary" @click="copyShareLink">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="18" cy="5" r="3"/>
-        <circle cx="6" cy="12" r="3"/>
-        <circle cx="18" cy="19" r="3"/>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-      </svg>
-      {{ i18n.t('shareLink') }}
-    </button>
-  </div>
-
-  <!-- Toast notification -->
-  <div class="toast" v-if="copyMessage">{{ copyMessage }}</div>
-
-  <!-- Config Section -->
-  <section class="config-section">
-    <button class="config-toggle-btn" :class="{'active': showConfig}" @click="showConfig = !showConfig">
-      <svg class="config-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
-      {{ i18n.t('configSettings') }}
-    </button>
-
-    <div class="config-content" :class="{'active': showConfig}">
-      <div class="section-title">{{ i18n.t('secretConfig') }}</div>
-
+      <div class="section-heading">{{ i18n.t('secretConfig') }}</div>
       <div class="form-group">
-        <label>{{ i18n.t('secretKey') }}</label>
-        <input type="text" v-model="secret_key" :placeholder="i18n.t('secretPlaceholder')">
+        <label for="secret-key">{{ i18n.t('secretKey') }}</label>
+        <input id="secret-key" type="text" v-model.trim="secret_key" autocomplete="off" autocapitalize="characters" spellcheck="false" :placeholder="i18n.t('secretPlaceholder')">
+        <div class="compact-meta">{{ i18n.t('secretHelp') }}</div>
       </div>
 
-      <div class="section-title">{{ i18n.t('algorithmParams') }}</div>
-
+      <div class="section-heading">{{ i18n.t('algorithmParams') }}</div>
       <div class="form-row">
         <div class="form-group">
-          <label>{{ i18n.t('algorithm') }}</label>
-          <select v-model="algorithm">
+          <label for="algorithm">{{ i18n.t('algorithm') }}</label>
+          <select id="algorithm" v-model="algorithm">
             <option>SHA1</option>
             <option>SHA256</option>
             <option>SHA512</option>
           </select>
         </div>
         <div class="form-group">
-          <label>{{ i18n.t('digits') }}</label>
-          <input type="number" v-model.number="digits" min="1" max="10" placeholder="6">
+          <label for="digits">{{ i18n.t('digits') }}</label>
+          <input id="digits" type="number" v-model.number="digits" min="1" max="10" placeholder="6">
         </div>
         <div class="form-group">
-          <label>{{ i18n.t('period') }}</label>
-          <input type="number" v-model.number="period" min="1" placeholder="30">
+          <label for="period">{{ i18n.t('period') }}</label>
+          <input id="period" type="number" v-model.number="period" min="1" max="300" placeholder="30">
         </div>
       </div>
 
-      <div class="section-title">{{ i18n.t('qrImport') }}</div>
-
-      <div class="form-group">
-        <label>{{ i18n.t('importQR') }}</label>
-        <div
-          id="paste-area"
-          tabindex="0"
-          class="qr-paste-area"
-          :class="{'active': pasteFocused}"
-          @paste="handlePaste"
-          @focus="pasteFocused=true"
-          @blur="pasteFocused=false">
-          <span class="qr-paste-icon">📷</span>
-          <span class="qr-paste-text">{{ pasteFocused ? i18n.t('pasteQR') : i18n.t('clickPaste') }}</span>
+      <div class="section-heading">{{ i18n.t('qrImport') }}</div>
+      <div
+        id="paste-area"
+        tabindex="0"
+        class="qr-paste-area"
+        :class="{'active': pasteFocused}"
+        @click="focusPasteArea"
+        @paste="handlePaste"
+        @focus="pasteFocused=true"
+        @blur="pasteFocused=false">
+        <div class="qr-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18v3"/>
+          </svg>
+        </div>
+        <div>
+          <p class="qr-paste-title">{{ i18n.t('importQR') }}</p>
+          <p class="qr-paste-text">{{ pasteFocused ? i18n.t('pasteQR') : i18n.t('clickPaste') }}</p>
+        </div>
+      </div>
+      <div class="qr-import-actions">
+        <button class="btn" type="button" @click="triggerImagePicker">
+          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <circle cx="8.5" cy="10.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 19"/>
+          </svg>
+          {{ i18n.t('addImage') }}
+        </button>
+        <button class="btn" type="button" @click="cameraActive ? stopCameraScan() : startCameraScan()">
+          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2"/>
+          </svg>
+          {{ cameraActive ? i18n.t('stopCamera') : i18n.t('scanCamera') }}
+        </button>
+      </div>
+      <input ref="imageInput" class="sr-only" type="file" accept="image/*" @change="handleImageSelect">
+      <div class="camera-panel" v-if="cameraActive">
+        <video ref="cameraVideo" class="camera-preview" autoplay muted playsinline></video>
+        <div class="camera-footer">
+          <span>{{ cameraStatus }}</span>
+          <button class="btn" type="button" @click="stopCameraScan">{{ i18n.t('stopCamera') }}</button>
         </div>
       </div>
 
-      <!-- QR Export Section -->
-      <div class="section-title">{{ i18n.t('exportQR') }}</div>
-
-      <div class="form-group">
-        <label>{{ i18n.t('issuer') }}</label>
-        <input type="text" v-model="issuer" :placeholder="i18n.t('issuerPlaceholder')">
+      <div class="section-heading">{{ i18n.t('exportQR') }}</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="issuer">{{ i18n.t('issuer') }}</label>
+          <input id="issuer" type="text" v-model.trim="issuer" autocomplete="organization" :placeholder="i18n.t('issuerPlaceholder')">
+        </div>
+        <div class="form-group">
+          <label for="username">{{ i18n.t('username') }}</label>
+          <input id="username" type="text" v-model.trim="username" autocomplete="username" :placeholder="i18n.t('usernamePlaceholder')">
+        </div>
       </div>
+      <div class="warning-text" v-if="qrSecretWarning">{{ i18n.t('secretWarning') }}</div>
 
-      <div class="form-group">
-        <label>{{ i18n.t('username') }}</label>
-        <input type="text" v-model="username" :placeholder="i18n.t('usernamePlaceholder')">
-      </div>
-
-      <div class="form-group">
-        <label>{{ i18n.t('secretKey') }}</label>
-        <input type="text" v-model="secret_key" :placeholder="i18n.t('secretPlaceholder')">
-        <div class="warning-text" v-if="qrSecretWarning">{{ i18n.t('secretWarning') }}</div>
-      </div>
-
-      <button class="btn btn-primary qr-generate-btn" @click="generateQRCode">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="btn btn-primary" type="button" @click="generateQRCode">
+        <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <path d="M7 7h10M7 12h10M7 17h4"/>
+          <path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3M14 18h3"/>
         </svg>
         {{ i18n.t('generateQR') }}
       </button>
 
-      <!-- QR Result Display -->
       <div class="qr-result-section" v-if="showQRResult">
         <div class="totp-uri-box">{{ generatedQRUrl }}</div>
         <div class="qr-container">
           <img :src="qrImageDataUrl" alt="TOTP QR Code">
           <div class="qr-label">{{ i18n.t('qrLabel') }}</div>
         </div>
-        <button class="btn btn-primary copy-uri-btn" @click="copyQRUri">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="btn" type="button" @click="copyQRUri">
+          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2"/>
             <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
           </svg>
           {{ i18n.t('copyUri') }}
         </button>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
-</div>
-
+  <div class="toast" v-if="copyMessage">{{ copyMessage }}</div>
+</main>
 </body>
 </html>

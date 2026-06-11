@@ -2,116 +2,114 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-A pure frontend Time-based One-Time Password (TOTP) generator with QR code import and parameter sharing support.
+A pure frontend Time-based One-Time Password (TOTP) generator with QR code import, QR export, and share-link support.
 
-### Features
+## Features
 
 - Real-time TOTP token generation
-- QR code screenshot paste import
+- Previous and next token preview
+- QR import from pasted screenshots, image files, or camera scanning
+- Authenticator QR code export
 - Share link with encoded parameters
 - Auto-save configuration to sessionStorage
 - Auto language switching (EN/ZH)
-- Responsive design for mobile
+- Responsive desktop and mobile design
 
-### Usage
+## Usage
 
-#### Basic Usage
+### Basic Usage
 
-1. Open `index.html`
-2. Enter your Base-32 secret key in "Configuration Settings"
-3. TOTP token will be generated and refreshed automatically
+1. Open `index.html`.
+2. Enter a Base32 secret key in the configuration panel.
+3. The TOTP token is generated and refreshed automatically.
 
-#### URL Parameters
+### URL Parameters
 
 Configure via URL query parameters:
 
-```
+```text
 index.html?key=JBSWY3DPEHPK3PXP&digits=6&period=30&algorithm=SHA1
 ```
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
-| `key` | Base-32 secret key | *(empty)* |
+| --- | --- | --- |
+| `key` | Base32 secret key | empty |
 | `digits` | Token digits | `6` |
-| `period` | Refresh period (seconds) | `30` |
-| `algorithm` | Algorithm (SHA1/SHA256/SHA512) | `SHA1` |
+| `period` | Refresh period in seconds | `30` |
+| `algorithm` | Algorithm: SHA1, SHA256, SHA512 | `SHA1` |
 
-#### Share Link
+### Share Link
 
-Click "Share Link" to generate a shareable URL:
+Click "Share link" to generate a shareable URL:
 
+```text
+index.html#eyJrIjoiSkJTV1kzRFBFSFAzUFhQIiwiZCI6NiwicCI6MzAsImEiOiJTSEExIn0=
 ```
-index.html#eyJrIjoiSlJTV1kzRFBFSFAzUFhQIiwiZCI6NiwicCI6MzAsImEiOiJTSEExIn0=
-```
 
-The hash is a Base64-encoded JSON with fields: `k` (key), `d` (digits), `p` (period), `a` (algorithm).
+The hash is a Base64-encoded JSON payload with fields `k` (key), `d` (digits), `p` (period), and `a` (algorithm).
 
-#### QR Code Import
+### QR Code Import
 
-1. Expand "Configuration Settings"
-2. Click the paste area
-3. Paste a screenshot containing `otpauth://` QR code
-4. Configuration will be auto-imported
+You can import an authenticator QR code in three ways:
 
-Supports `otpauth://` URI format:
+- Paste a screenshot into the QR paste area.
+- Click "Add image" and choose an image file.
+- Click "Scan with camera" and point your camera at the QR code.
 
-```
+The configuration is imported automatically after a QR code is recognized.
+
+Supported URI format:
+
+```text
 otpauth://totp/Issuer:Account?secret=KEY&algorithm=SHA1&digits=6&period=30
 ```
 
-### Configuration Parameters
+### QR Code Export
 
-| Parameter | Type | Description | Valid Values |
-|-----------|------|-------------|--------------|
-| Secret Key | String | Base-32 encoded key | Any Base-32 string |
-| Algorithm | String | HMAC algorithm | SHA1, SHA256, SHA512 |
-| Digits | Number | Token length | Usually 6 or 8 |
-| Period | Number | Refresh period (seconds) | Usually 30 |
+1. Fill issuer, account, and secret.
+2. Click "Generate QR code".
+3. Scan the generated QR code with an authenticator app, or copy the URI.
 
-### Technical Details
+## Security
 
-#### Dependencies
+- All calculations run in the browser.
+- Secrets are not sent to a server.
+- Configuration is stored in `sessionStorage` and clears when the browser session ends.
+- URL parameters are removed from browser history after loading.
 
-- [Vue 3](https://vuejs.org/) - Frontend framework
-- [OTPAuth](https://github.com/hectorm/otpauth) - TOTP/HOTP implementation
-- [Clipboard.js](https://clipboardjs.com/) - Copy functionality
-- [jsQR](https://github.com/cozmo/jsQR) - QR code parsing
-- [qrcode-generator](https://github.com/niclas/node-qrcode) - QR code generation
+## Dependencies
 
-#### Security
+- [Vue 3](https://vuejs.org/)
+- [OTPAuth](https://github.com/hectorm/otpauth)
+- [Clipboard.js](https://clipboardjs.com/)
+- [jsQR](https://github.com/cozmo/jsQR)
+- [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator)
 
-- All calculations done client-side, no server transmission
-- Configuration saved in sessionStorage, cleared on browser close
-- URL parameters auto-cleared after loading
+## Running Locally
 
-### Running Locally
-
-No server required, just open `index.html`:
+Open `index.html` directly, or run a simple HTTP server:
 
 ```bash
-# Or use a simple HTTP server
-npx serve .
-# Or
 python -m http.server 8080
 ```
 
-### File Structure
+## File Structure
 
-```
+```text
 totp-generator/
 ├── index.html
 ├── README.md
 ├── README.zh-CN.md
 ├── css/
 │   └── bulma-0.9.4.min.css
-├── js/
-│   ├── app.js
-│   └── assets/
-│       ├── vue-3.4.20.global.prod.js
-│       ├── otpauth-9.1.3.min.js
-│       ├── clipboard-2.0.6.min.js
-│       ├── jsqr-1.4.0.min.js
-│       └── qrcode.min.js
+└── js/
+    ├── app.js
+    └── assets/
+        ├── vue-3.4.20.global.prod.js
+        ├── otpauth-9.1.3.min.js
+        ├── clipboard-2.0.6.min.js
+        ├── jsqr-1.4.0.min.js
+        └── qrcode.min.js
 ```
 
 ## License
