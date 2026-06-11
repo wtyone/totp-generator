@@ -38,6 +38,14 @@
         linear-gradient(135deg, #f8fbff 0%, var(--bg) 100%);
     }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+    }
+
     button,
     input,
     select {
@@ -45,18 +53,19 @@
     }
 
     .app-shell {
-      width: min(1120px, calc(100% - 32px));
+      position: relative;
+      width: min(560px, calc(100% - 32px));
       min-height: 100vh;
       margin: 0 auto;
-      padding: 42px 0;
+      padding: 24px 0;
       display: grid;
-      align-items: center;
+      align-items: start;
     }
 
     .workspace {
       display: grid;
-      grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
-      gap: 22px;
+      grid-template-columns: 1fr;
+      gap: 12px;
       align-items: start;
     }
 
@@ -64,15 +73,14 @@
     .settings-panel {
       background: rgba(255, 255, 255, 0.92);
       border: 1px solid rgba(220, 229, 239, 0.9);
-      border-radius: 24px;
+      border-radius: 18px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(18px);
     }
 
     .hero-panel {
-      padding: 30px;
+      padding: 20px;
       overflow: hidden;
-      position: relative;
     }
 
     .hero-panel::after {
@@ -98,7 +106,7 @@
 
     .brand-row {
       gap: 12px;
-      margin-bottom: 28px;
+      margin-bottom: 16px;
     }
 
     .brand-mark {
@@ -134,16 +142,16 @@
     .token-card {
       position: relative;
       z-index: 1;
-      padding: 22px;
+      padding: 16px;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 16px;
       background: linear-gradient(180deg, #ffffff, var(--panel-soft));
     }
 
     .token-header {
       justify-content: space-between;
       gap: 14px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     .status-pill {
@@ -176,9 +184,9 @@
       margin: 0;
       color: var(--primary-dark);
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-      font-size: clamp(42px, 8vw, 64px);
+      font-size: clamp(38px, 8vw, 52px);
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       line-height: 1;
       text-align: center;
       word-break: break-all;
@@ -190,8 +198,8 @@
     }
 
     .progress-track {
-      height: 9px;
-      margin: 22px 0 16px;
+      height: 8px;
+      margin: 18px 0 12px;
       overflow: hidden;
       border-radius: 999px;
       background: #e5edf6;
@@ -212,18 +220,18 @@
     .adjacent-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
 
     .adjacent-item {
-      padding: 12px;
+      padding: 10px;
       border: 1px solid var(--line);
       border-radius: 14px;
       background: #fff;
     }
 
     .label {
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       color: var(--muted);
       font-size: 12px;
       font-weight: 700;
@@ -233,14 +241,14 @@
     .adjacent-value {
       color: #334155;
       font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 0.06em;
     }
 
     .actions {
       gap: 12px;
-      margin-top: 18px;
+      margin-top: 14px;
     }
 
     .btn {
@@ -284,18 +292,18 @@
     }
 
     .security-note {
-      margin: 20px 0 0;
-      padding: 14px 16px;
+      margin: 14px 0 0;
+      padding: 10px 12px;
       border: 1px solid rgba(15, 159, 110, 0.2);
-      border-radius: 14px;
+      border-radius: 12px;
       color: #17664e;
       background: rgba(15, 159, 110, 0.08);
-      font-size: 13px;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .settings-panel {
-      padding: 24px;
+      padding: 18px 20px;
     }
 
     .settings-header {
@@ -308,7 +316,7 @@
 
     .settings-header h2 {
       margin: 0;
-      font-size: 21px;
+      font-size: 19px;
     }
 
     .settings-header p {
@@ -343,8 +351,8 @@
     }
 
     .settings-toggle-icon {
-      width: 38px;
-      height: 38px;
+      width: 34px;
+      height: 34px;
       flex: 0 0 auto;
       display: grid;
       place-items: center;
@@ -356,8 +364,8 @@
     }
 
     .settings-toggle-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       transition: transform 0.18s ease;
     }
 
@@ -366,7 +374,7 @@
     }
 
     .settings-body {
-      margin-top: 18px;
+      margin-top: 14px;
     }
 
     .section-heading {
@@ -406,6 +414,7 @@
       padding: 10px 12px;
       color: var(--text);
       background: #fff;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.18s ease, box-shadow 0.18s ease;
     }
@@ -423,6 +432,7 @@
 
     .form-row .form-group {
       flex: 1;
+      min-width: 0;
     }
 
     .compact-meta {
@@ -585,69 +595,127 @@
     }
 
     .toast {
-      position: fixed;
-      top: 22px;
-      left: 50%;
-      z-index: 10;
-      transform: translateX(-50%);
-      max-width: min(92vw, 460px);
-      padding: 12px 18px;
-      border-radius: 999px;
-      color: #fff;
-      background: #162033;
-      box-shadow: 0 16px 36px rgba(23, 32, 51, 0.22);
-      font-weight: 750;
-      animation: toast-in 0.18s ease-out;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+      border-radius: 12px;
+      color: #163f76;
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.9), rgba(204, 251, 241, 0.84));
+      box-shadow: 0 10px 22px rgba(23, 32, 51, 0.1);
+      backdrop-filter: blur(14px);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      animation: toast-in 0.16s ease-out;
+    }
+
+    .toast.warning {
+      border-color: rgba(196, 125, 5, 0.18);
+      color: #7c4a03;
+      background: linear-gradient(135deg, rgba(254, 243, 199, 0.92), rgba(255, 237, 213, 0.84));
     }
 
     @keyframes toast-in {
-      from { opacity: 0; transform: translate(-50%, -8px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 860px) {
       .app-shell {
         width: min(100% - 24px, 640px);
         padding: 18px 0;
-        align-items: start;
-      }
-
-      .workspace {
-        grid-template-columns: 1fr;
       }
 
       .hero-panel,
       .settings-panel {
-        border-radius: 18px;
+        box-shadow: 0 16px 42px rgba(27, 39, 57, 0.1);
       }
     }
 
     @media (max-width: 520px) {
+      body {
+        background: #f6f9fd;
+      }
+
+      body::before,
+      .hero-panel::after {
+        display: none;
+      }
+
+      .app-shell {
+        width: 100%;
+        padding: 0;
+      }
+
+      .workspace {
+        gap: 10px;
+      }
+
       .hero-panel,
       .settings-panel {
-        padding: 18px;
+        border-right: 0;
+        border-left: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .hero-panel {
+        padding: 18px 14px 14px;
+      }
+
+      .settings-panel {
+        padding: 16px 14px 22px;
+      }
+
+      .brand-row {
+        margin-bottom: 14px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+      }
+
+      h1 {
+        font-size: 22px;
       }
 
       .token-card {
-        padding: 16px;
+        padding: 14px;
+        border-radius: 14px;
       }
 
       .token-header,
-      .actions,
-      .form-row,
       .camera-footer {
         flex-direction: column;
         align-items: stretch;
       }
 
+      .token-header {
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .token-value {
+        font-size: clamp(38px, 15vw, 54px);
+      }
+
       .actions {
         display: flex;
-        gap: 14px;
+        gap: 10px;
       }
 
       .actions .btn {
         width: 100%;
-        flex: none;
+      }
+
+      .settings-header {
+        gap: 12px;
+      }
+
+      .settings-header h2 {
+        font-size: 19px;
       }
 
       .settings-toggle {
@@ -662,8 +730,35 @@
         grid-template-columns: 1fr;
       }
 
+      .form-row,
       .qr-import-actions {
         grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .qr-paste-area {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+
+      .qr-icon {
+        width: 38px;
+        height: 38px;
+      }
+
+      .toast {
+        border-radius: 14px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .token-value {
+        font-size: 36px;
+        letter-spacing: 0.04em;
+      }
+
+      .adjacent-value {
+        font-size: 16px;
       }
     }
   </style>
@@ -743,6 +838,8 @@
           {{ i18n.t('shareLink') }}
         </button>
       </div>
+
+      <div class="toast" :class="messageType" v-if="copyMessage">{{ copyMessage }}</div>
 
       <p class="security-note">{{ i18n.t('securityNote') }}</p>
     </section>
@@ -877,8 +974,6 @@
       </div>
     </section>
   </div>
-
-  <div class="toast" v-if="copyMessage">{{ copyMessage }}</div>
 </main>
 </body>
 </html>

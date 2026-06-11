@@ -98,7 +98,7 @@ const i18n = {
       shareLink: 'Share link',
       configSettings: 'Configuration',
       configIntro: 'Enter a Base32 secret, import an authenticator QR code, or export a new setup QR code.',
-      secretConfig: 'Secret',
+      secretConfig: 'Authenticator setup',
       secretKey: 'Secret key',
       secretPlaceholder: 'JBSWY3DPEHPK3PXP',
       secretHelp: 'Base32 only: A-Z and 2-7. Spaces are ignored.',
@@ -106,9 +106,9 @@ const i18n = {
       algorithm: 'Algorithm',
       digits: 'Digits',
       period: 'Period (seconds)',
-      tokenCopied: 'Token copied',
-      linkCopied: 'Link copied',
-      uriCopied: 'URI copied',
+      tokenCopied: 'Copied. Ready to paste.',
+      linkCopied: 'Share link copied.',
+      uriCopied: 'URI copied.',
       noQRFound: 'No QR code found. Try a clearer image.',
       copyFailed: 'Copy failed. Please copy manually.',
       qrImport: 'QR import',
@@ -145,7 +145,7 @@ const i18n = {
       shareLink: '分享链接',
       configSettings: '配置',
       configIntro: '输入 Base32 密钥，或通过验证器二维码导入、导出配置。',
-      secretConfig: '密钥',
+      secretConfig: '验证器信息',
       secretKey: '密钥',
       secretPlaceholder: 'JBSWY3DPEHPK3PXP',
       secretHelp: '仅支持 Base32：A-Z 和 2-7。空格会被自动忽略。',
@@ -153,8 +153,8 @@ const i18n = {
       algorithm: '算法',
       digits: '位数',
       period: '周期（秒）',
-      tokenCopied: '令牌已复制',
-      linkCopied: '链接已复制',
+      tokenCopied: '已复制，可直接粘贴',
+      linkCopied: '分享链接已复制',
       uriCopied: 'URI 已复制',
       noQRFound: '未识别到二维码，请尝试更清晰的图片。',
       copyFailed: '复制失败，请手动复制。',
@@ -207,6 +207,7 @@ const app = Vue.createApp({
       pasteFocused: false,
       shareLink: null,
       copyMessage: '',
+      messageType: 'success',
       expiresAt: new Date(),
       issuer: '',
       username: '',
@@ -242,7 +243,7 @@ const app = Vue.createApp({
       copyText(this.token).then(() => {
         this.showMessage(i18n.t('tokenCopied'));
       }).catch(() => {
-        this.showMessage(i18n.t('copyFailed'));
+        this.showMessage(i18n.t('copyFailed'), 'warning');
       });
     });
   },
@@ -335,13 +336,14 @@ const app = Vue.createApp({
       copyText(this.shareLink).then(() => {
         this.showMessage(i18n.t('linkCopied'));
       }).catch(() => {
-        this.showMessage(i18n.t('copyFailed'));
+        this.showMessage(i18n.t('copyFailed'), 'warning');
       });
     },
 
-    showMessage: function (msg) {
+    showMessage: function (msg, type) {
       clearTimeout(this.messageTimer);
       this.copyMessage = msg;
+      this.messageType = type || 'success';
       this.messageTimer = setTimeout(() => {
         this.copyMessage = '';
       }, 2600);
@@ -458,7 +460,7 @@ const app = Vue.createApp({
 
     scanQRFromImage: function (file) {
       if (file.size > 4 * 1024 * 1024) {
-        this.showMessage(i18n.t('noQRFound'));
+        this.showMessage(i18n.t('noQRFound'), 'warning');
         return;
       }
 
@@ -468,15 +470,15 @@ const app = Vue.createApp({
         img.onload = () => {
           var maxSize = 2400;
           if (img.width > maxSize || img.height > maxSize) {
-            this.showMessage(i18n.t('noQRFound'));
+            this.showMessage(i18n.t('noQRFound'), 'warning');
             return;
           }
           this.scanQRFromSource(img, img.width, img.height, true);
         };
-        img.onerror = () => this.showMessage(i18n.t('noQRFound'));
+        img.onerror = () => this.showMessage(i18n.t('noQRFound'), 'warning');
         img.src = e.target.result;
       };
-      reader.onerror = () => this.showMessage(i18n.t('noQRFound'));
+      reader.onerror = () => this.showMessage(i18n.t('noQRFound'), 'warning');
       reader.readAsDataURL(file);
     },
 
@@ -499,13 +501,13 @@ const app = Vue.createApp({
         return true;
       }
 
-      if (showFailure) this.showMessage(i18n.t('noQRFound'));
+      if (showFailure) this.showMessage(i18n.t('noQRFound'), 'warning');
       return false;
     },
 
     startCameraScan: async function () {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this.showMessage(i18n.t('cameraUnavailable'));
+        this.showMessage(i18n.t('cameraUnavailable'), 'warning');
         return;
       }
 
@@ -535,7 +537,7 @@ const app = Vue.createApp({
         });
       } catch (e) {
         this.stopCameraScan();
-        this.showMessage(i18n.t('cameraUnavailable'));
+        this.showMessage(i18n.t('cameraUnavailable'), 'warning');
       }
     },
 
@@ -613,7 +615,7 @@ const app = Vue.createApp({
       const secret = normalizeSecret(this.secret_key);
 
       if (!issuer || !username || !this.isValidBase32(secret)) {
-        this.showMessage(i18n.t('fillAllFields'));
+        this.showMessage(i18n.t('fillAllFields'), 'warning');
         return;
       }
 
@@ -636,7 +638,7 @@ const app = Vue.createApp({
         this.showQRResult = true;
         this.showMessage(i18n.t('qrGenerated'));
       } catch (e) {
-        this.showMessage(i18n.t('noQRFound'));
+        this.showMessage(i18n.t('noQRFound'), 'warning');
       }
     },
 
@@ -644,7 +646,7 @@ const app = Vue.createApp({
       copyText(this.generatedQRUrl).then(() => {
         this.showMessage(i18n.t('uriCopied'));
       }).catch(() => {
-        this.showMessage(i18n.t('copyFailed'));
+        this.showMessage(i18n.t('copyFailed'), 'warning');
       });
     }
   },
