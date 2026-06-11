@@ -75,12 +75,15 @@
       border: 1px solid rgba(220, 229, 239, 0.9);
       border-radius: 18px;
       box-shadow: var(--shadow);
+      -webkit-backdrop-filter: blur(18px);
       backdrop-filter: blur(18px);
     }
 
     .hero-panel {
+      position: relative;
       padding: 20px;
       overflow: hidden;
+      isolation: isolate;
     }
 
     .hero-panel::after {
@@ -96,7 +99,6 @@
 
     .brand-row,
     .token-header,
-    .actions,
     .form-row,
     .section-heading,
     .compact-meta {
@@ -124,6 +126,7 @@
     .button-icon {
       width: 20px;
       height: 20px;
+      flex: 0 0 auto;
     }
 
     h1 {
@@ -247,6 +250,8 @@
     }
 
     .actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-top: 14px;
     }
@@ -268,7 +273,8 @@
     }
 
     .actions .btn {
-      flex: 1;
+      width: 100%;
+      min-width: 0;
     }
 
     .btn:hover {
@@ -602,6 +608,7 @@
       color: #163f76;
       background: linear-gradient(135deg, rgba(219, 234, 254, 0.9), rgba(204, 251, 241, 0.84));
       box-shadow: 0 10px 22px rgba(23, 32, 51, 0.1);
+      -webkit-backdrop-filter: blur(14px);
       backdrop-filter: blur(14px);
       font-size: 13px;
       font-weight: 700;
@@ -657,6 +664,9 @@
         border-left: 0;
         border-radius: 0;
         box-shadow: none;
+        background: #fff;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
 
       .hero-panel {
@@ -702,7 +712,8 @@
       }
 
       .actions {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr;
         gap: 10px;
       }
 
@@ -747,7 +758,14 @@
       }
 
       .toast {
+        background: linear-gradient(135deg, #dbeafe, #ccfbf1);
         border-radius: 14px;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      .toast.warning {
+        background: linear-gradient(135deg, #fef3c7, #ffedd5);
       }
     }
 
