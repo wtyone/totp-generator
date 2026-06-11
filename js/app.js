@@ -214,6 +214,7 @@ const app = Vue.createApp({
       generatedQRUrl: '',
       qrImageDataUrl: '',
       qrSecretWarning: false,
+      showConfig: false,
       intervalHandle: null,
       messageTimer: null,
       cameraActive: false,

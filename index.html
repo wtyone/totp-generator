@@ -318,6 +318,57 @@
       line-height: 1.5;
     }
 
+    .settings-toggle {
+      width: 100%;
+      border: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      color: inherit;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .settings-toggle:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .settings-toggle .settings-header {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .settings-toggle-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--primary-dark);
+      background: var(--primary-soft);
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .settings-toggle-icon svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.18s ease;
+    }
+
+    .settings-toggle[aria-expanded="true"] .settings-toggle-icon svg {
+      transform: rotate(180deg);
+    }
+
+    .settings-body {
+      margin-top: 18px;
+    }
+
     .section-heading {
       justify-content: space-between;
       gap: 10px;
@@ -582,12 +633,25 @@
       }
 
       .token-header,
-      .settings-header,
       .actions,
       .form-row,
       .camera-footer {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .actions {
+        display: flex;
+        gap: 14px;
+      }
+
+      .actions .btn {
+        width: 100%;
+        flex: none;
+      }
+
+      .settings-toggle {
+        align-items: flex-start;
       }
 
       .expires {
@@ -684,39 +748,47 @@
     </section>
 
     <section class="settings-panel" aria-labelledby="settings-title">
-      <div class="settings-header">
-        <div>
-          <h2 id="settings-title">{{ i18n.t('configSettings') }}</h2>
-          <p>{{ i18n.t('configIntro') }}</p>
-        </div>
-      </div>
+      <button class="settings-toggle" type="button" :aria-expanded="String(showConfig)" aria-controls="settings-body" @click="showConfig = !showConfig">
+        <span class="settings-header">
+          <span>
+            <h2 id="settings-title">{{ i18n.t('configSettings') }}</h2>
+            <p>{{ i18n.t('configIntro') }}</p>
+          </span>
+        </span>
+        <span class="settings-toggle-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </span>
+      </button>
 
-      <div class="section-heading">{{ i18n.t('secretConfig') }}</div>
-      <div class="form-group">
-        <label for="secret-key">{{ i18n.t('secretKey') }}</label>
-        <input id="secret-key" type="text" v-model.trim="secret_key" autocomplete="off" autocapitalize="characters" spellcheck="false" :placeholder="i18n.t('secretPlaceholder')">
-        <div class="compact-meta">{{ i18n.t('secretHelp') }}</div>
-      </div>
+      <div id="settings-body" class="settings-body" v-show="showConfig">
+        <div class="section-heading">{{ i18n.t('secretConfig') }}</div>
+        <div class="form-group">
+          <label for="secret-key">{{ i18n.t('secretKey') }}</label>
+          <input id="secret-key" type="text" v-model.trim="secret_key" autocomplete="off" autocapitalize="characters" spellcheck="false" :placeholder="i18n.t('secretPlaceholder')">
+          <div class="compact-meta">{{ i18n.t('secretHelp') }}</div>
+        </div>
 
-      <div class="section-heading">{{ i18n.t('algorithmParams') }}</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="algorithm">{{ i18n.t('algorithm') }}</label>
-          <select id="algorithm" v-model="algorithm">
-            <option>SHA1</option>
-            <option>SHA256</option>
-            <option>SHA512</option>
-          </select>
+        <div class="section-heading">{{ i18n.t('algorithmParams') }}</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="algorithm">{{ i18n.t('algorithm') }}</label>
+            <select id="algorithm" v-model="algorithm">
+              <option>SHA1</option>
+              <option>SHA256</option>
+              <option>SHA512</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="digits">{{ i18n.t('digits') }}</label>
+            <input id="digits" type="number" v-model.number="digits" min="1" max="10" placeholder="6">
+          </div>
+          <div class="form-group">
+            <label for="period">{{ i18n.t('period') }}</label>
+            <input id="period" type="number" v-model.number="period" min="1" max="300" placeholder="30">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="digits">{{ i18n.t('digits') }}</label>
-          <input id="digits" type="number" v-model.number="digits" min="1" max="10" placeholder="6">
-        </div>
-        <div class="form-group">
-          <label for="period">{{ i18n.t('period') }}</label>
-          <input id="period" type="number" v-model.number="period" min="1" max="300" placeholder="30">
-        </div>
-      </div>
 
       <div class="section-heading">{{ i18n.t('qrImport') }}</div>
       <div
@@ -788,19 +860,20 @@
         {{ i18n.t('generateQR') }}
       </button>
 
-      <div class="qr-result-section" v-if="showQRResult">
-        <div class="totp-uri-box">{{ generatedQRUrl }}</div>
-        <div class="qr-container">
-          <img :src="qrImageDataUrl" alt="TOTP QR Code">
-          <div class="qr-label">{{ i18n.t('qrLabel') }}</div>
+        <div class="qr-result-section" v-if="showQRResult">
+          <div class="totp-uri-box">{{ generatedQRUrl }}</div>
+          <div class="qr-container">
+            <img :src="qrImageDataUrl" alt="TOTP QR Code">
+            <div class="qr-label">{{ i18n.t('qrLabel') }}</div>
+          </div>
+          <button class="btn" type="button" @click="copyQRUri">
+            <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            {{ i18n.t('copyUri') }}
+          </button>
         </div>
-        <button class="btn" type="button" @click="copyQRUri">
-          <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2"/>
-            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-          {{ i18n.t('copyUri') }}
-        </button>
       </div>
     </section>
   </div>
