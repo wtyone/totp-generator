@@ -2,13 +2,25 @@ function stripSpaces(value) {
   return String(value || '').replace(/\s/g, '').toUpperCase();
 }
 
+function normalizeDigits(value) { return Number(value) === 8 ? 8 : 6; }
+
+function normalizePeriod(value) { return Number(value) === 60 ? 60 : 30; }
+
+function normalizeAlgorithm(value) {
+  var algorithm = String(value || '').toUpperCase();
+  return ['SHA1', 'SHA256', 'SHA512'].includes(algorithm) ? algorithm : 'SHA1';
+}
+
 function parseURLSearch(search) {
   if (!search || search.length <= 1) return {};
   return search.substring(1).split('&').reduce(function (params, pair) {
+    if (!pair) return params;
     var chunks = pair.split('=');
-    var key = chunks[0];
+    var rawKey = chunks[0].replace(/\+/g, ' ');
+    var rawValue = chunks.length > 1 ? chunks.slice(1).join('=').replace(/\+/g, ' ') : '';
+    var key;
+    try { key = decodeURIComponent(rawKey); } catch (error) { key = rawKey; }
     if (!key) return params;
-    var rawValue = chunks.length > 1 ? chunks.slice(1).join('=') : '';
     try {
       params[key] = decodeURIComponent(rawValue);
     } catch (error) {
@@ -117,6 +129,7 @@ const app = Vue.createApp({
     this.loadTokenHistory();
     this.getKeyFromUrl();
     this.getQueryParameters();
+    this.normalizeConfig();
     this.update();
     this.scheduleTokenHistoryRecord();
     this.intervalHandle = setInterval(() => this.update(), 250);
@@ -160,9 +173,14 @@ const app = Vue.createApp({
       var cleaned = stripSpaces(value).replace(/=+$/, '');
       return Boolean(cleaned) && /^[A-Z2-7]+$/.test(cleaned);
     },
+    normalizeConfig() {
+      this.digits = normalizeDigits(this.digits);
+      this.period = normalizePeriod(this.period);
+      this.algorithm = normalizeAlgorithm(this.algorithm);
+    },
     update() {
-      var period = Number(this.period) > 0 ? Number(this.period) : 30;
-      var digits = Number(this.digits) > 0 ? Number(this.digits) : 6;
+      var period = normalizePeriod(this.period);
+      var digits = normalizeDigits(this.digits);
       var now = Date.now();
       var periodStart = Math.floor(now / (period * 1000)) * period * 1000;
       var remaining = period * 1000 - (now - periodStart);
@@ -254,13 +272,14 @@ const app = Vue.createApp({
       if (params.key) this.secret_key = stripSpaces(params.key);
       if (params.digits) this.digits = Number(params.digits);
       if (params.period) this.period = Number(params.period);
-      if (params.algorithm) this.algorithm = String(params.algorithm).toUpperCase();
+      if (params.algorithm) this.algorithm = normalizeAlgorithm(params.algorithm);
+      this.normalizeConfig();
       if (window.location.search) history.replaceState(null, document.title, location.href.split(/[?#]/)[0]);
     },
     parseOtpauth(uri) {
       try {
         var url = new URL(uri);
-        if (url.protocol !== 'otpauth:') return null;
+        if (url.protocol !== 'otpauth:' || url.hostname.toLowerCase() !== 'totp') return null;
         var params = url.searchParams;
         var label = '';
         try { label = decodeURIComponent(url.pathname.replace(/^\/+/, '')); } catch (error) { label = url.pathname.replace(/^\/+/, ''); }
@@ -269,9 +288,9 @@ const app = Vue.createApp({
         var labelAccount = separator >= 0 ? label.slice(separator + 1) : label;
         return {
           secret_key: stripSpaces(params.get('secret')),
-          digits: Number(params.get('digits')) || 6,
-          period: Number(params.get('period')) || 30,
-          algorithm: (params.get('algorithm') || 'SHA1').toUpperCase(),
+          digits: normalizeDigits(params.get('digits')),
+          period: normalizePeriod(params.get('period')),
+          algorithm: normalizeAlgorithm(params.get('algorithm')),
           issuer: params.get('issuer') || labelIssuer,
           username: labelAccount
         };
@@ -283,6 +302,7 @@ const app = Vue.createApp({
       var config = this.parseOtpauth(data);
       if (config && config.secret_key) {
         Object.assign(this, config);
+        this.normalizeConfig();
         this.showMessage(i18n.t('qrImported'));
         return true;
       }
@@ -297,6 +317,7 @@ const app = Vue.createApp({
       var items = (event.clipboardData && event.clipboardData.items) || [];
       for (var index = 0; index < items.length; index += 1) {
         if (items[index].type.indexOf('image') !== -1) {
+          event.preventDefault();
           this.scanQRFromImage(items[index].getAsFile());
           return;
         }
@@ -404,6 +425,7 @@ const app = Vue.createApp({
         image.onerror = () => this.showMessage(i18n.t('noQRFound'));
         image.src = event.target.result;
       };
+      reader.onerror = () => this.showMessage(i18n.t('noQRFound'));
       reader.readAsDataURL(file);
     },
     loadFromStorage() {
@@ -412,9 +434,9 @@ const app = Vue.createApp({
       try {
         var config = JSON.parse(saved);
         this.secret_key = stripSpaces(config.secret_key);
-        this.digits = Number(config.digits) || 6;
-        this.period = Number(config.period) || 30;
-        this.algorithm = config.algorithm || 'SHA1';
+        this.digits = normalizeDigits(config.digits);
+        this.period = normalizePeriod(config.period);
+        this.algorithm = normalizeAlgorithm(config.algorithm);
       } catch (error) { /* Ignore invalid local data. */ }
     },
     saveToStorage() {
@@ -429,9 +451,14 @@ const app = Vue.createApp({
         var historyItems = JSON.parse(saved);
         if (!Array.isArray(historyItems)) return;
         this.tokenHistory = historyItems.filter(function (item) {
-          return item && typeof item.secret_key === 'string' && /^[A-Z2-7]+$/.test(item.secret_key) && Number(item.digits) > 0 && Number(item.period) > 0;
+          return item && typeof item.secret_key === 'string' && /^[A-Z2-7]+$/.test(item.secret_key) && [6, 8].includes(Number(item.digits)) && [30, 60].includes(Number(item.period));
         }).map(function (item) {
-          return Object.assign({}, item, { createdAt: item.createdAt || new Date().toISOString() });
+          return Object.assign({}, item, {
+            algorithm: normalizeAlgorithm(item.algorithm),
+            digits: normalizeDigits(item.digits),
+            period: normalizePeriod(item.period),
+            createdAt: item.createdAt || new Date().toISOString()
+          });
         }).slice(0, 10);
       } catch (error) { /* Ignore invalid local history. */ }
     },
@@ -449,9 +476,9 @@ const app = Vue.createApp({
       var entry = {
         id: existing ? existing.id : String(Date.now()),
         secret_key: secret,
-        algorithm: this.algorithm,
-        digits: Number(this.digits),
-        period: Number(this.period),
+        algorithm: normalizeAlgorithm(this.algorithm),
+        digits: normalizeDigits(this.digits),
+        period: normalizePeriod(this.period),
         createdAt: existing ? existing.createdAt : new Date().toISOString()
       };
       if (existing) {
@@ -476,9 +503,9 @@ const app = Vue.createApp({
     },
     activateTokenHistory(item) {
       this.secret_key = item.secret_key;
-      this.algorithm = item.algorithm || 'SHA1';
-      this.digits = Number(item.digits) || 6;
-      this.period = Number(item.period) || 30;
+      this.algorithm = normalizeAlgorithm(item.algorithm);
+      this.digits = normalizeDigits(item.digits);
+      this.period = normalizePeriod(item.period);
       this.issuer = '';
       this.username = '';
       this.showQRResult = false;
@@ -508,6 +535,7 @@ const app = Vue.createApp({
       this.qrImageDataUrl = qr.createDataURL(6, 12);
     },
     generateQRCode() {
+      this.normalizeConfig();
       if (!this.hasValidSecret || !this.issuer.trim() || !this.username.trim()) {
         this.showMessage(i18n.t('fillAllFields'));
         return;
