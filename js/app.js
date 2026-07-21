@@ -62,12 +62,13 @@ const i18n = {
       configuration: 'Settings', settings: 'Code parameters', collapse: 'Collapse', expand: 'Open', secretKey: 'Secret key', clear: 'Clear',
       secretPlaceholder: 'Enter a Base32 secret', hideSecret: 'Hide secret', showSecret: 'Show secret', invalidSecret: 'Use only Base32 characters: A–Z and 2–7.',
       secretHelp: 'Spaces are removed automatically.', advancedSettings: 'Advanced parameters', digitUnit: 'digits', algorithm: 'Algorithm', digits: 'Digits', period: 'Refresh period', quickImport: 'Import configuration',
-      importQR: 'Use a QR code', optional: 'Optional', scanCamera: 'Scan with camera', aimAtQR: 'Point at a QR code', chooseQR: 'Choose an image', pasteQR: 'or paste a screenshot', exportQR: 'Create a setup QR code',
+      importQR: 'Use a QR code', optional: 'Optional', required: 'Required', scanCamera: 'Scan with camera', aimAtQR: 'Point at a QR code', chooseQR: 'Choose an image', pasteQR: 'or paste a screenshot', captureScreen: 'Capture screen', selectScreenArea: 'Select an area to scan', exportQR: 'Create a setup QR code',
       liveScan: 'Live scan', cameraTitle: 'Scan QR code', closeCamera: 'Close camera', startingCamera: 'Starting camera…', cameraHelp: 'Hold the QR code inside the frame. It will be recognized automatically.',
       issuer: 'Issuer', account: 'Account', generateQR: 'Generate QR code', generatedQRAlt: 'Generated authenticator QR code', copyUri: 'Copy setup URI', qrReady: 'Setup code ready', scanToImport: 'Scan with your authenticator app to import this account.', tokenHistory: 'Generation history', tokenHistoryHint: 'Select a saved secret to load it and generate its current code.', historyCount: '{count} saved', clearHistory: 'Clear history', confirmClearHistory: 'Click again to clear', historyEmpty: 'Enter your first valid secret and it will appear here.', activateToken: 'Use saved secret', historyActivated: 'Saved secret loaded', historyCleared: 'Generation history cleared',
       tokenCopied: 'Code copied', previousCopied: 'Previous code copied', nextCopied: 'Next code copied', linkCopied: 'Configuration link copied (contains the secret)', uriCopied: 'Setup URI copied',
       copyFailed: 'Could not copy. Please try again.', noQRFound: 'No valid QR code was found in that image.', qrImported: 'QR code imported', cameraUnavailable: 'Camera scanning requires HTTPS or localhost.', cameraDenied: 'Camera access was not allowed.',
-      fillAllFields: 'Add a valid secret, issuer and account first.', qrGenerated: 'QR code generated'
+      screenCaptureTitle: 'Select QR code area', screenCaptureHelp: 'Drag over the QR code in the captured screen, then scan the selected area.', scanSelection: 'Scan selected area', recaptureScreen: 'Capture again', closeScreenCapture: 'Close screen capture', screenCaptureUnavailable: 'Screen capture requires a supported browser over HTTPS or localhost.',
+      fillAllFields: 'Add a valid secret and issuer first.', qrGenerated: 'QR code generated'
     },
     zh: {
       appName: 'TOTP 生成器', appTitle: 'TOTP 生成器', appDescription: '本地 TOTP 动态验证码生成器，支持二维码导入。', localOnly: '本地运行', eyebrow: '动态验证码', headline: 'TOTP 验证码生成器',
@@ -80,12 +81,13 @@ const i18n = {
       configuration: '设置', settings: '验证码参数', collapse: '收起', expand: '展开', secretKey: '密钥', clear: '清空',
       secretPlaceholder: '输入 Base32 密钥', hideSecret: '隐藏密钥', showSecret: '显示密钥', invalidSecret: '仅支持 Base32 字符：A–Z 和 2–7。',
       secretHelp: '空格会被自动移除。', advancedSettings: '高级参数', digitUnit: '位', algorithm: '算法', digits: '位数', period: '刷新周期', quickImport: '导入配置',
-      importQR: '使用二维码', optional: '可选', scanCamera: '摄像头扫描', aimAtQR: '对准二维码即可识别', chooseQR: '选择图片', pasteQR: '也可以粘贴截图', exportQR: '生成导入二维码',
+      importQR: '使用二维码', optional: '可选', required: '必填', scanCamera: '摄像头扫描', aimAtQR: '对准二维码即可识别', chooseQR: '选择图片', pasteQR: '也可以粘贴截图', captureScreen: '截取屏幕', selectScreenArea: '框选屏幕区域识别', exportQR: '生成导入二维码',
       liveScan: '实时扫描', cameraTitle: '扫描二维码', closeCamera: '关闭摄像头', startingCamera: '正在启动摄像头…', cameraHelp: '将二维码保持在取景框内，识别成功后会自动导入。',
+      screenCaptureTitle: '框选二维码区域', screenCaptureHelp: '请在截取的屏幕中拖动鼠标框选二维码，然后识别选区。', scanSelection: '识别选区', recaptureScreen: '重新截取', closeScreenCapture: '关闭截屏', screenCaptureUnavailable: '截取屏幕需要受支持的浏览器，并通过 HTTPS 或 localhost 访问。',
       issuer: '发行方', account: '账户', generateQR: '生成二维码', generatedQRAlt: '生成的身份验证器二维码', copyUri: '复制设置 URI', qrReady: '导入码已生成', scanToImport: '使用身份验证器扫描，即可导入此账户。', tokenHistory: '生成历史', tokenHistoryHint: '点击已保存的 Secret 后，再加载并生成当前验证码。', historyCount: '已保存 {count} 条', clearHistory: '清除历史', confirmClearHistory: '再次点击确认', historyEmpty: '输入第一个有效 Secret 后，会自动保存在这里。', activateToken: '使用已保存的 Secret', historyActivated: '已加载历史 Secret', historyCleared: '生成历史已清除',
       tokenCopied: '验证码已复制', previousCopied: '上一组验证码已复制', nextCopied: '下一组验证码已复制', linkCopied: '配置链接已复制（包含密钥）', uriCopied: '设置 URI 已复制',
       copyFailed: '复制失败，请重试。', noQRFound: '图片中没有识别到有效二维码。', qrImported: '二维码已导入', cameraUnavailable: '摄像头扫描需要通过 HTTPS 或 localhost 访问。', cameraDenied: '未获得摄像头使用权限。',
-      fillAllFields: '请先填写有效密钥、发行方和账户。', qrGenerated: '二维码已生成'
+      fillAllFields: '请先填写有效密钥和发行方。', qrGenerated: '二维码已生成'
     }
   },
   t(key, values) {
@@ -108,7 +110,8 @@ const app = Vue.createApp({
       showSecret: false, showConfig: false, copyMessage: '', expiresAt: new Date(), intervalHandle: null,
       issuer: '', username: '', showQRResult: false, generatedQRUrl: '', qrImageDataUrl: '',
       tokenHistory: [], tokenHistoryClearPending: false, tokenHistoryClearTimeout: null, tokenHistorySaveTimeout: null,
-      cameraOpen: false, cameraStarting: false, cameraStream: null, cameraFrame: null, cameraLastScan: 0
+      cameraOpen: false, cameraStarting: false, cameraStream: null, cameraFrame: null, cameraLastScan: 0,
+      screenCaptureOpen: false, screenCaptureImageUrl: '', screenSelection: null, screenSelecting: false
     };
   },
   computed: {
@@ -120,6 +123,19 @@ const app = Vue.createApp({
     },
     progressDegrees() {
       return Math.max(0, Math.min(360, this.progressPercent * 3.6));
+    },
+    hasScreenSelection() {
+      return this.screenSelection && Math.abs(this.screenSelection.endX - this.screenSelection.startX) > 8 && Math.abs(this.screenSelection.endY - this.screenSelection.startY) > 8;
+    },
+    screenSelectionStyle() {
+      if (!this.screenSelection) return {};
+      var selection = this.screenSelection;
+      return {
+        left: Math.min(selection.startX, selection.endX) + 'px',
+        top: Math.min(selection.startY, selection.endY) + 'px',
+        width: Math.abs(selection.endX - selection.startX) + 'px',
+        height: Math.abs(selection.endY - selection.startY) + 'px'
+      };
     }
   },
   mounted() {
@@ -139,6 +155,7 @@ const app = Vue.createApp({
     window.clearTimeout(this.tokenHistoryClearTimeout);
     window.clearTimeout(this.tokenHistorySaveTimeout);
     this.closeCamera();
+    this.closeScreenCapture();
   },
   methods: {
     applyDocumentPreferences() {
@@ -284,14 +301,15 @@ const app = Vue.createApp({
         var label = '';
         try { label = decodeURIComponent(url.pathname.replace(/^\/+/, '')); } catch (error) { label = url.pathname.replace(/^\/+/, ''); }
         var separator = label.indexOf(':');
+        var paramIssuer = params.get('issuer');
         var labelIssuer = separator >= 0 ? label.slice(0, separator) : '';
-        var labelAccount = separator >= 0 ? label.slice(separator + 1) : label;
+        var labelAccount = separator >= 0 ? label.slice(separator + 1) : (paramIssuer === label ? '' : label);
         return {
           secret_key: stripSpaces(params.get('secret')),
           digits: normalizeDigits(params.get('digits')),
           period: normalizePeriod(params.get('period')),
           algorithm: normalizeAlgorithm(params.get('algorithm')),
-          issuer: params.get('issuer') || labelIssuer,
+          issuer: paramIssuer || labelIssuer,
           username: labelAccount
         };
       } catch (error) {
@@ -401,6 +419,99 @@ const app = Vue.createApp({
       this.cameraStarting = false;
       this.cameraLastScan = 0;
       this.cameraOpen = false;
+    },
+    async captureScreen() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        this.showMessage(i18n.t('screenCaptureUnavailable'));
+        return;
+      }
+
+      var stream = null;
+      var video = document.createElement('video');
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: false });
+        video.muted = true;
+        video.playsInline = true;
+        video.srcObject = stream;
+        await video.play();
+        await new Promise(function (resolve) { window.requestAnimationFrame(resolve); });
+        if (!video.videoWidth || !video.videoHeight) throw new Error('No screen frame available');
+
+        var maxDimension = 3840;
+        var scale = Math.min(1, maxDimension / Math.max(video.videoWidth, video.videoHeight));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        this.screenCaptureImageUrl = canvas.toDataURL('image/png');
+        this.screenSelection = null;
+        this.screenCaptureOpen = true;
+        await this.$nextTick();
+        this.$refs.screenCaptureModal.focus();
+      } catch (error) {
+        this.showMessage(i18n.t('screenCaptureUnavailable'));
+      } finally {
+        video.srcObject = null;
+        if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+      }
+    },
+    closeScreenCapture() {
+      this.screenCaptureOpen = false;
+      this.screenCaptureImageUrl = '';
+      this.screenSelection = null;
+      this.screenSelecting = false;
+    },
+    getScreenSelectionPoint(event) {
+      var bounds = event.currentTarget.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.min(bounds.width, event.clientX - bounds.left)),
+        y: Math.max(0, Math.min(bounds.height, event.clientY - bounds.top))
+      };
+    },
+    beginScreenSelection(event) {
+      var point = this.getScreenSelectionPoint(event);
+      this.screenSelection = { startX: point.x, startY: point.y, endX: point.x, endY: point.y };
+      this.screenSelecting = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    updateScreenSelection(event) {
+      if (!this.screenSelecting || !this.screenSelection) return;
+      var point = this.getScreenSelectionPoint(event);
+      this.screenSelection.endX = point.x;
+      this.screenSelection.endY = point.y;
+    },
+    finishScreenSelection(event) {
+      if (!this.screenSelecting) return;
+      this.updateScreenSelection(event);
+      this.screenSelecting = false;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    },
+    scanScreenSelection() {
+      if (!this.hasScreenSelection) return;
+      var image = this.$refs.screenCaptureImage;
+      var viewport = this.$refs.screenCaptureViewport;
+      if (!image || !viewport || !image.naturalWidth || !image.naturalHeight) return;
+
+      var bounds = viewport.getBoundingClientRect();
+      var selection = this.screenSelection;
+      var sourceX = Math.round(Math.min(selection.startX, selection.endX) / bounds.width * image.naturalWidth);
+      var sourceY = Math.round(Math.min(selection.startY, selection.endY) / bounds.height * image.naturalHeight);
+      var sourceWidth = Math.min(image.naturalWidth - sourceX, Math.max(1, Math.round(Math.abs(selection.endX - selection.startX) / bounds.width * image.naturalWidth)));
+      var sourceHeight = Math.min(image.naturalHeight - sourceY, Math.max(1, Math.round(Math.abs(selection.endY - selection.startY) / bounds.height * image.naturalHeight)));
+      var maxDimension = 2000;
+      var scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+      var context = canvas.getContext('2d', { willReadFrequently: true });
+      context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+      var pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      var code = jsQR(pixels.data, pixels.width, pixels.height, { inversionAttempts: 'attemptBoth' });
+      if (code && this.importFromQR(code.data)) {
+        this.closeScreenCapture();
+      } else {
+        this.showMessage(i18n.t('noQRFound'));
+      }
     },
     scanQRFromImage(file) {
       if (!file || file.size > 5 * 1024 * 1024) {
@@ -536,13 +647,14 @@ const app = Vue.createApp({
     },
     generateQRCode() {
       this.normalizeConfig();
-      if (!this.hasValidSecret || !this.issuer.trim() || !this.username.trim()) {
+      if (!this.hasValidSecret || !this.issuer.trim()) {
         this.showMessage(i18n.t('fillAllFields'));
         return;
       }
       var issuer = this.issuer.trim();
       var account = this.username.trim();
-      var uri = 'otpauth://totp/' + encodeURIComponent(issuer + ':' + account) + '?secret=' + encodeURIComponent(stripSpaces(this.secret_key)) +
+      var label = account ? issuer + ':' + account : issuer;
+      var uri = 'otpauth://totp/' + encodeURIComponent(label) + '?secret=' + encodeURIComponent(stripSpaces(this.secret_key)) +
         '&issuer=' + encodeURIComponent(issuer) + '&algorithm=' + encodeURIComponent(this.algorithm) + '&digits=' + Number(this.digits) + '&period=' + Number(this.period);
       this.renderQRCode(uri);
       this.showQRResult = true;

@@ -11,7 +11,7 @@ A privacy-focused, build-free TOTP generator that runs entirely in the browser. 
 
 - Generate the previous, current, and next TOTP codes in real time
 - Support SHA-1, SHA-256, and SHA-512 with 6- or 8-digit codes
-- Import `otpauth://` QR codes with a camera, an image file, or a pasted screenshot
+- Import `otpauth://` QR codes with a camera, an image file, a pasted screenshot, or a selected screen area
 - Generate setup QR codes for importing accounts into authenticator apps
 - Keep up to 10 recently used configurations in the current browser session
 - Copy codes, setup URIs, and Base64-encoded configuration links
@@ -48,13 +48,14 @@ Under **Import configuration**, use one of these methods:
 - **Scan with camera** — point the device camera at an authenticator QR code.
 - **Choose an image** — select an image containing an `otpauth://` QR code.
 - **Paste a screenshot** — focus the image import control and paste an image from the clipboard.
+- **Capture screen** — select a screen or window, drag over the QR code, then scan the selected area locally.
 
 Imported issuer and account values are also used by the QR export form when available.
 
 ### Generate a Setup QR Code
 
 1. Open **Create a setup QR code**.
-2. Enter the issuer and account name.
+2. Enter the issuer (required) and, if desired, an account name (optional).
 3. Click **Generate QR code**.
 4. Scan the result with an authenticator app or copy the generated setup URI.
 

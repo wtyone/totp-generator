@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#f6f7fb">
   <meta name="description" content="本地 TOTP 动态验证码生成器，支持二维码导入。">
   <title>TOTP 生成器</title>
-  <link rel="stylesheet" href="css/app.css?v=9.1">
+  <link rel="stylesheet" href="css/app.css?v=9.2">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self';">
   <script defer src="js/assets/jsqr-1.4.0.min.js"></script>
   <script defer src="js/assets/qrcode.min.js"></script>
   <script defer src="js/assets/vue-3.4.20.global.prod.js"></script>
   <script defer src="js/assets/otpauth-9.1.3.min.js"></script>
-  <script defer src="js/app.js?v=9.0"></script>
+  <script defer src="js/app.js?v=9.1"></script>
 </head>
 <body>
   <div class="app-shell" id="app" v-cloak>
@@ -154,6 +154,10 @@
                 <span class="image-icon" aria-hidden="true"><span></span></span>
                 <span><strong>{{ i18n.t('chooseQR') }}</strong><small>{{ i18n.t('pasteQR') }}</small></span>
               </button>
+              <button class="import-button" type="button" @click="captureScreen">
+                <span class="screen-icon" aria-hidden="true"></span>
+                <span><strong>{{ i18n.t('captureScreen') }}</strong><small>{{ i18n.t('selectScreenArea') }}</small></span>
+              </button>
             </div>
             <input class="visually-hidden" ref="qrFile" type="file" accept="image/*" @change="handleFileSelect">
           </div>
@@ -231,11 +235,11 @@
             <div class="details-content">
               <div class="form-grid export-grid">
                 <div class="form-field">
-                  <label for="issuer">{{ i18n.t('issuer') }}</label>
-                  <input id="issuer" type="text" v-model.trim="issuer" placeholder="GitHub">
+                  <label for="issuer">{{ i18n.t('issuer') }} <span class="field-required">{{ i18n.t('required') }}</span></label>
+                  <input id="issuer" type="text" v-model.trim="issuer" placeholder="GitHub" required aria-required="true">
                 </div>
                 <div class="form-field">
-                  <label for="account">{{ i18n.t('account') }}</label>
+                  <label for="account">{{ i18n.t('account') }} <span class="field-optional">{{ i18n.t('optional') }}</span></label>
                   <input id="account" type="text" v-model.trim="username" placeholder="name@example.com">
                 </div>
               </div>
@@ -247,7 +251,7 @@
                 <div class="qr-result-copy">
                   <span class="qr-ready"><span aria-hidden="true"></span>{{ i18n.t('qrReady') }}</span>
                   <strong>{{ issuer }}</strong>
-                  <small>{{ username }}</small>
+                  <small v-if="username">{{ username }}</small>
                   <p>{{ i18n.t('scanToImport') }}</p>
                   <button class="qr-copy-button" type="button" @click="copyQRUri">
                     <span class="icon-copy" aria-hidden="true"></span>{{ i18n.t('copyUri') }}
@@ -279,6 +283,24 @@
         </div>
         <canvas class="visually-hidden" ref="cameraCanvas"></canvas>
         <p class="camera-help" aria-live="polite">{{ i18n.t('cameraHelp') }}</p>
+      </div>
+    </div>
+
+    <div class="screen-capture-modal" v-if="screenCaptureOpen" role="dialog" aria-modal="true" :aria-label="i18n.t('screenCaptureTitle')" tabindex="-1" ref="screenCaptureModal" @click.self="closeScreenCapture" @keydown.esc="closeScreenCapture">
+      <div class="screen-capture-dialog">
+        <div class="camera-header">
+          <div><span class="section-kicker">{{ i18n.t('captureScreen') }}</span><h2>{{ i18n.t('screenCaptureTitle') }}</h2></div>
+          <button class="camera-close" type="button" @click="closeScreenCapture" :aria-label="i18n.t('closeScreenCapture')"><span aria-hidden="true"></span></button>
+        </div>
+        <div class="screen-capture-viewport" ref="screenCaptureViewport" @pointerdown.prevent="beginScreenSelection" @pointermove="updateScreenSelection" @pointerup="finishScreenSelection" @pointercancel="finishScreenSelection">
+          <img ref="screenCaptureImage" :src="screenCaptureImageUrl" alt="">
+          <div class="screen-selection" v-if="screenSelection" :style="screenSelectionStyle" aria-hidden="true"></div>
+        </div>
+        <p class="screen-capture-help">{{ i18n.t('screenCaptureHelp') }}</p>
+        <div class="screen-capture-actions">
+          <button class="action-button" type="button" @click="captureScreen">{{ i18n.t('recaptureScreen') }}</button>
+          <button class="action-button action-primary" type="button" :disabled="!hasScreenSelection" @click="scanScreenSelection">{{ i18n.t('scanSelection') }}</button>
+        </div>
       </div>
     </div>
 
