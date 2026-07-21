@@ -111,6 +111,7 @@ const app = Vue.createApp({
       issuer: '', username: '', showQRResult: false, generatedQRUrl: '', qrImageDataUrl: '',
       tokenHistory: [], tokenHistoryClearPending: false, tokenHistoryClearTimeout: null, tokenHistorySaveTimeout: null,
       cameraOpen: false, cameraStarting: false, cameraStream: null, cameraFrame: null, cameraLastScan: 0,
+      cameraFocusSupported: false, cameraZoomSupported: false, cameraZoom: 1, cameraZoomMin: 1, cameraZoomMax: 1, cameraZoomStep: 0.1,
       screenCaptureOpen: false, screenCaptureImageUrl: '', screenSelection: null, screenSelecting: false
     };
   },
@@ -372,6 +373,7 @@ const app = Vue.createApp({
           this.cameraStream = null;
           return;
         }
+        await this.configureCameraTrack();
         this.$refs.cameraVideo.srcObject = this.cameraStream;
         await this.$refs.cameraVideo.play();
         this.cameraStarting = false;
@@ -381,6 +383,47 @@ const app = Vue.createApp({
         this.closeCamera();
         this.showMessage(i18n.t(denied ? 'cameraDenied' : 'cameraUnavailable'));
       }
+    },
+    getCameraTrack() {
+      return this.cameraStream && this.cameraStream.getVideoTracks ? this.cameraStream.getVideoTracks()[0] : null;
+    },
+    async configureCameraTrack() {
+      var track = this.getCameraTrack();
+      if (!track || typeof track.getCapabilities !== 'function') return;
+
+      var capabilities = track.getCapabilities() || {};
+      var focusModes = Array.isArray(capabilities.focusMode) ? capabilities.focusMode : [];
+      this.cameraFocusSupported = focusModes.indexOf('continuous') !== -1 || focusModes.indexOf('single') !== -1;
+
+      if (this.cameraFocusSupported && typeof track.applyConstraints === 'function') {
+        var focusMode = focusModes.indexOf('continuous') !== -1 ? 'continuous' : 'single';
+        try { await track.applyConstraints({ advanced: [{ focusMode: focusMode }] }); } catch (error) { /* Camera keeps its default focus mode. */ }
+      }
+
+      var zoom = capabilities.zoom;
+      this.cameraZoomSupported = Boolean(zoom && Number.isFinite(zoom.min) && Number.isFinite(zoom.max) && zoom.max > zoom.min);
+      if (!this.cameraZoomSupported) return;
+
+      var settings = typeof track.getSettings === 'function' ? track.getSettings() : {};
+      this.cameraZoomMin = zoom.min;
+      this.cameraZoomMax = zoom.max;
+      this.cameraZoomStep = zoom.step || 0.1;
+      this.cameraZoom = Number.isFinite(settings.zoom) ? settings.zoom : zoom.min;
+    },
+    async refocusCamera() {
+      var track = this.getCameraTrack();
+      if (!track || typeof track.getCapabilities !== 'function' || typeof track.applyConstraints !== 'function') return;
+      var focusModes = track.getCapabilities().focusMode || [];
+      var focusMode = focusModes.indexOf('continuous') !== -1 ? 'continuous' : 'single';
+      if (focusModes.indexOf(focusMode) === -1) return;
+      try { await track.applyConstraints({ advanced: [{ focusMode: focusMode }] }); } catch (error) { /* Keep the device default when it rejects a focus constraint. */ }
+    },
+    async setCameraZoom() {
+      var track = this.getCameraTrack();
+      if (!track || typeof track.applyConstraints !== 'function' || !this.cameraZoomSupported) return;
+      var zoom = Math.max(this.cameraZoomMin, Math.min(this.cameraZoomMax, Number(this.cameraZoom)));
+      this.cameraZoom = zoom;
+      try { await track.applyConstraints({ advanced: [{ zoom: zoom }] }); } catch (error) { /* Some browsers expose zoom but reject runtime changes. */ }
     },
     scanCameraFrame() {
       if (!this.cameraOpen || !this.cameraStream) return;
@@ -418,6 +461,11 @@ const app = Vue.createApp({
       if (video) video.srcObject = null;
       this.cameraStarting = false;
       this.cameraLastScan = 0;
+      this.cameraFocusSupported = false;
+      this.cameraZoomSupported = false;
+      this.cameraZoom = 1;
+      this.cameraZoomMin = 1;
+      this.cameraZoomMax = 1;
       this.cameraOpen = false;
     },
     async captureScreen() {

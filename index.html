@@ -12,7 +12,7 @@
   <script defer src="js/assets/qrcode.min.js"></script>
   <script defer src="js/assets/vue-3.4.20.global.prod.js"></script>
   <script defer src="js/assets/otpauth-9.1.3.min.js"></script>
-  <script defer src="js/app.js?v=9.1"></script>
+  <script defer src="js/app.js?v=9.2"></script>
 </head>
 <body>
   <div class="app-shell" id="app" v-cloak>
@@ -280,6 +280,13 @@
           <video ref="cameraVideo" autoplay muted playsinline></video>
           <div class="scan-frame" aria-hidden="true"><span></span></div>
           <div class="camera-loading" v-if="cameraStarting"><span class="loading-ring" aria-hidden="true"></span>{{ i18n.t('startingCamera') }}</div>
+        </div>
+        <div class="camera-controls" v-if="cameraFocusSupported || cameraZoomSupported">
+          <button class="camera-refocus" v-if="cameraFocusSupported" type="button" @click="refocusCamera">{{ i18n.isChinese ? '重新对焦' : 'Refocus' }}</button>
+          <label class="camera-zoom" v-if="cameraZoomSupported">
+            <span>{{ i18n.isChinese ? '缩放' : 'Zoom' }}</span>
+            <input type="range" v-model.number="cameraZoom" @input="setCameraZoom" :min="cameraZoomMin" :max="cameraZoomMax" :step="cameraZoomStep" :aria-label="i18n.isChinese ? '摄像头缩放' : 'Camera zoom'">
+          </label>
         </div>
         <canvas class="visually-hidden" ref="cameraCanvas"></canvas>
         <p class="camera-help" aria-live="polite">{{ i18n.t('cameraHelp') }}</p>
