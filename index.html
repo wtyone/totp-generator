@@ -56,14 +56,14 @@
           </span>
         </div>
 
-        <article class="otp-card" :class="{ 'is-warning': updatingIn <= 5 }">
-          <div class="otp-meta">
+        <article class="otp-card" :class="{ 'is-warning': hasValidSecret && updatingIn <= 5 }">
+          <div class="otp-meta" :class="{ 'has-countdown': hasValidSecret }">
             <span class="token-type-icon" aria-hidden="true"><span>T</span></span>
             <div class="otp-type">
               <strong>TOTP</strong>
               <span>{{ algorithm }} · {{ digits }} {{ i18n.t('digitUnit') }} · {{ period }}s</span>
             </div>
-            <div class="countdown" :style="{ '--progress': progressDegrees + 'deg' }" role="timer" :aria-label="i18n.t('remaining', { count: updatingIn })">
+            <div v-if="hasValidSecret" class="countdown" :style="{ '--progress': progressDegrees + 'deg' }" role="timer" :aria-label="i18n.t('remaining', { count: updatingIn })">
               <span>{{ updatingIn }}</span><small>s</small>
             </div>
           </div>
@@ -73,7 +73,7 @@
             <span class="copy-hint">{{ hasValidSecret ? i18n.t('tapToCopy') : i18n.t('addSecret') }}</span>
           </button>
 
-          <div class="progress-track" aria-hidden="true">
+          <div v-if="hasValidSecret" class="progress-track" aria-hidden="true">
             <span :style="{ width: progressPercent + '%' }"></span>
           </div>
 

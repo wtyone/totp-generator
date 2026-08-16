@@ -229,6 +229,7 @@ h3 { font-size: 15px; font-weight: 680; }
   gap: 13px;
   padding: 23px 24px 0;
 }
+.otp-meta:not(.has-countdown) { grid-template-columns: 44px 1fr; }
 .token-type-icon {
   position: relative;
   width: 44px;

@@ -106,8 +106,8 @@ const app = Vue.createApp({
       i18n: i18n,
       theme: initialTheme,
       secret_key: '', digits: 6, period: 30, algorithm: 'SHA1',
-      updatingIn: 30, progressPercent: 100, token: '------', prevToken: '------', nextToken: '------',
-      showSecret: false, showConfig: false, copyMessage: '', expiresAt: new Date(), intervalHandle: null,
+      updatingIn: 0, progressPercent: 0, token: '------', prevToken: '------', nextToken: '------',
+      showSecret: false, showConfig: false, copyMessage: '', expiresAt: null, intervalHandle: null,
       issuer: '', username: '', showQRResult: false, generatedQRUrl: '', qrImageDataUrl: '',
       tokenHistory: [], tokenHistoryClearPending: false, tokenHistoryClearTimeout: null, tokenHistorySaveTimeout: null,
       cameraOpen: false, cameraStarting: false, cameraStream: null, cameraFrame: null, cameraLastScan: 0,
@@ -199,19 +199,23 @@ const app = Vue.createApp({
     update() {
       var period = normalizePeriod(this.period);
       var digits = normalizeDigits(this.digits);
+
+      if (!this.hasValidSecret) {
+        this.updatingIn = 0;
+        this.progressPercent = 0;
+        this.expiresAt = null;
+        this.token = '-'.repeat(digits);
+        this.prevToken = '-'.repeat(digits);
+        this.nextToken = '-'.repeat(digits);
+        return;
+      }
+
       var now = Date.now();
       var periodStart = Math.floor(now / (period * 1000)) * period * 1000;
       var remaining = period * 1000 - (now - periodStart);
       this.updatingIn = Math.ceil(remaining / 1000);
       this.progressPercent = remaining / (period * 1000) * 100;
       this.expiresAt = new Date(periodStart + period * 1000);
-
-      if (!this.hasValidSecret) {
-        this.token = '-'.repeat(digits);
-        this.prevToken = '-'.repeat(digits);
-        this.nextToken = '-'.repeat(digits);
-        return;
-      }
 
       try {
         var secret = OTPAuth.Secret.fromBase32(stripSpaces(this.secret_key).replace(/=+$/, ''));
